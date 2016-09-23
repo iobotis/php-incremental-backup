@@ -82,7 +82,7 @@ class Duplicity
      * @return mixed
      */
     public function verify() {
-        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' verify file://' . $this->_destination . ' ' . $this->_main_directory , $output, $exitCode );
+        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' verify --compare-data file://' . $this->_destination . ' ' . $this->_main_directory , $output, $exitCode );
         $this->_output = $output;
         return $exitCode;
     }
@@ -135,6 +135,6 @@ class Duplicity
 
     private static function _run( $cmd_parameters, &$output, &$exitCode ) {
         exec( self::DUPLICITY_CMD  . ' ' . $cmd_parameters , $output, $exitCode );
-        echo self::DUPLICITY_CMD  . ' ' . $cmd_parameters . "\n";
+        //echo self::DUPLICITY_CMD  . ' ' . $cmd_parameters . "\n";
     }
 }
