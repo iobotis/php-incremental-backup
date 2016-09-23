@@ -9,6 +9,7 @@
 class Duplicity
 {
     const DUPLICITY_CMD = 'duplicity';
+    const DUPLICITY_CMD_SUFIX = '>/dev/null';
 
     private $_options = array(
         '--no-encryption' => array(
@@ -81,19 +82,19 @@ class Duplicity
      * @return mixed
      */
     public function verify() {
-        exec( self::DUPLICITY_CMD  . ' ' . $this->_getOptions() . $this->_getExcludedPaths() . ' verify file://' . $this->_destination . ' ' . $this->_main_directory , $output, $exitCode );
+        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' verify file://' . $this->_destination . ' ' . $this->_main_directory , $output, $exitCode );
         $this->_output = $output;
         return $exitCode;
     }
 
     public function execute() {
-        exec( self::DUPLICITY_CMD  . ' ' . $this->_getOptions() . $this->_getExcludedPaths() . ' ' . $this->_main_directory . ' file://' . $this->_destination , $output, $exitCode );
+        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' ' . $this->_main_directory . ' file://' . $this->_destination , $output, $exitCode );
         $this->_output = $output;
         return $exitCode;
     }
 
     public function getCollectionStatus() {
-        exec( self::DUPLICITY_CMD  . ' ' . $this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination , $output, $exitCode );
+        self::_run(  $this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination, $output, $exitCode );
         $this->_output = $output;
         return $exitCode;
     }
@@ -130,5 +131,10 @@ class Duplicity
 
     public function getOutput() {
         return $this->_output;
+    }
+
+    private static function _run( $cmd_parameters, &$output, &$exitCode ) {
+        exec( self::DUPLICITY_CMD  . ' ' . $cmd_parameters , $output, $exitCode );
+        echo self::DUPLICITY_CMD  . ' ' . $cmd_parameters . "\n";
     }
 }
