@@ -6,11 +6,11 @@
  * @since 23/9/2016
  */
 
-require_once( 'Duplicity.php' );
+require_once( 'IncrementalBackup.php' );
 
 echo "Version: " . Duplicity::getVersion() . "\n";
 
-$backup = new Duplicity( '/path/to/backup', '/path/to/save' );
+//$backup = new Duplicity( '/path/to/backup', '/path/to/save' );
 
 if( $backup->verify()  != 0 ) {
     // back me up.
@@ -22,3 +22,18 @@ else {
 
 $backup->getCollectionStatus();
 echo( implode( "\n", $backup->getOutput() ) );
+
+$backupClass = new IncrementalBackup ( $backup );
+
+$backups = $backupClass->getAllBackups();
+foreach ($backups as $time) {
+    echo 'There is a backup at ' . $time . "\n";
+}
+
+if( $backupClass->isChanged() ) {
+    // back me up.
+    $backupClass->createBackup();
+}
+else {
+    echo 'No need to backup.' . "\n";
+}
