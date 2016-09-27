@@ -1,7 +1,7 @@
 <?php
 require_once 'Duplicity.php';
 /**
- * @author Ioannis Botis <ioannis.botis@interactivedata.com>
+ * @author Ioannis Botis
  * @date 23/9/2016
  * @version: IncrementalBackup.php 1:42 μμ
  * @since 23/9/2016
@@ -17,6 +17,7 @@ class IncrementalBackup
     }
 
     public function isChanged() {
+        // Use verify to compare data between last backup and current data.
         if( $this->_duplicity->verify() != 0 ) {
             return true;
         }
@@ -41,6 +42,13 @@ class IncrementalBackup
     }
 
     public function restoreTo( $time, $directory ) {
-
+        $d = new DateTime( $time );
+        $time = $d->format( DateTime::W3C );
+        $exitCode = $this->_duplicity->restore( $time, $directory );
+        // Duplicity returned an non zero code, there was an error.
+        if( $exitCode ) {
+            return false;
+        }
+        return true;
     }
 }

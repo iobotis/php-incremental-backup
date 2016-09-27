@@ -14,6 +14,7 @@ $backup = new Duplicity( '/path/to/backup', '/path/to/save' );
 
 if( $backup->verify()  != 0 ) {
     // back me up.
+    echo 'Back up initiated' . "\n";
     $backup->execute();
 }
 else {
@@ -29,6 +30,7 @@ foreach ($backups as $time) {
 
 if( $backupClass->isChanged() ) {
     // back me up.
+    echo 'Back up initiated' . "\n";
     $backupClass->createBackup();
 }
 else {
