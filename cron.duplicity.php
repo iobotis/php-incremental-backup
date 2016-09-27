@@ -12,6 +12,8 @@ echo "Version: " . Duplicity::getVersion() . "\n";
 
 $backup = new Duplicity( '/path/to/backup', '/path/to/save' );
 
+//$backup->setPassPhrase( 'abcdef' );
+
 if( $backup->verify()  != 0 ) {
     // back me up.
     echo 'Back up initiated' . "\n";

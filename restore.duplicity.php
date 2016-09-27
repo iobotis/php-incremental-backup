@@ -12,6 +12,7 @@ echo "Version: " . Duplicity::getVersion() . "\n";
 
 $backup = new Duplicity( '/path/to/backup', '/path/to/save' );
 
+//$backup->setPassPhrase( 'abcdef' );
 $backupClass = new IncrementalBackup ( $backup );
 
 $backups = $backupClass->getAllBackups();

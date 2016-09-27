@@ -9,7 +9,7 @@
 class Duplicity
 {
     const DUPLICITY_CMD = 'duplicity';
-    const DUPLICITY_CMD_SUFIX = '>/dev/null';
+    const DUPLICITY_CMD_SUFIX = '2>/dev/null';
 
     private $_options = array(
         '--no-encryption' => array(
@@ -22,6 +22,10 @@ class Duplicity
         ),
     );
 
+    /**
+     * @var string optional passphrase specified.
+     */
+    private $_passphrase;
     /**
      * @var string the main directory to backup.
      */
@@ -78,6 +82,21 @@ class Duplicity
         return trim( str_replace( 'duplicity', '', $output ) );
     }
 
+    public function setPassPhrase( $passphrase ) {
+        if( ! is_string( $passphrase ) ) {
+            throw new Exception( 'Passphrase should be a string' );
+        }
+        $this->_passphrase = $passphrase;
+        $this->_options[ '--no-encryption' ][ 'use' ] = false;
+    }
+
+    protected function getEnvironmentVars() {
+        $vars = array();
+        if( isset( $this->_passphrase ) ) {
+            $vars[ 'PASSPHRASE' ] = $this->_passphrase;
+        }
+        return $vars;
+    }
     /**
      * Verify backup, test that the backup is not corrupted and it can be restored.
      * When compare data is used, it compares files between source and destination location and exits with a non zero code.
@@ -88,19 +107,19 @@ class Duplicity
      * @return mixed
      */
     public function verify( $compare_data = true ) {
-        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' verify ' . ( $compare_data? '--compare-data file://' : '' ) . $this->_destination . ' ' . $this->_main_directory , $output, $exitCode );
+        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' verify ' . ( $compare_data? '--compare-data file://' : '' ) . $this->_destination . ' ' . $this->_main_directory , $output, $exitCode, $this->getEnvironmentVars() );
         $this->_output = $output;
         return $exitCode;
     }
 
     public function execute() {
-        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' ' . $this->_main_directory . ' file://' . $this->_destination , $output, $exitCode );
+        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' ' . $this->_main_directory . ' file://' . $this->_destination , $output, $exitCode, $this->getEnvironmentVars() );
         $this->_output = $output;
         return $exitCode;
     }
 
     public function getCollectionStatus() {
-        self::_run(  $this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination, $output, $exitCode );
+        self::_run(  $this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination, $output, $exitCode, $this->getEnvironmentVars() );
         $this->_output = $output;
         return $exitCode;
     }
@@ -113,7 +132,14 @@ class Duplicity
         if( ! $this->directoryExists( $directory ) ) {
             throw new Exception( 'Directory path is invalid' );
         }
-        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' restore file://' . $this->_destination . ' ' . $directory . ' --time=' . $time , $output, $exitCode );
+        $is_empty = self::_isDirEmpty( $directory );
+        if( $is_empty === null ) {
+            throw new Exception( 'Directory path is not readable' );
+        }
+        if( $is_empty === false ) {
+            throw new Exception( 'Directory path should be empty' );
+        }
+        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' restore file://' . $this->_destination . ' ' . $directory . ' --time=' . $time , $output, $exitCode, $this->getEnvironmentVars() );
         $this->_output = $output;
         return $exitCode;
     }
@@ -148,12 +174,29 @@ class Duplicity
         return version_compare( $version, $since, '>=' );
     }
 
-    public function getOutput() {
+    private static function _isDirEmpty($dir)
+    {
+        if ( !is_readable($dir) ) return null;
+        $handle = opendir($dir);
+        while (false !== ($entry = readdir($handle))) {
+            if ( $entry != "." && $entry != ".." ) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+public function getOutput() {
         return $this->_output;
     }
 
-    private static function _run( $cmd_parameters, &$output, &$exitCode ) {
-        exec( self::DUPLICITY_CMD  . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX , $output, $exitCode );
-        //echo self::DUPLICITY_CMD  . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX . "\n";
+    private static function _run( $cmd_parameters, &$output, &$exitCode, $environment_vars = array() ) {
+        $vars = '';
+        foreach ( $environment_vars as $key => $value ) {
+            $vars .= $key . '=' . $value . " ";
+        }
+        exec( $vars . self::DUPLICITY_CMD  . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX , $output, $exitCode );
+        echo $vars . self::DUPLICITY_CMD  . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX . "\n";
     }
 }
