@@ -112,8 +112,8 @@ class Duplicity
         return $exitCode;
     }
 
-    public function execute() {
-        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' ' . $this->_main_directory . ' file://' . $this->_destination , $output, $exitCode, $this->getEnvironmentVars() );
+    public function execute( $full = false ) {
+        self::_run( $this->_getOptions() . $this->_getExcludedPaths() . ' '. ( $full? 'full ': '' ) . $this->_main_directory . ' file://' . $this->_destination , $output, $exitCode, $this->getEnvironmentVars() );
         $this->_output = $output;
         return $exitCode;
     }
@@ -187,7 +187,7 @@ class Duplicity
     }
 
 
-public function getOutput() {
+    public function getOutput() {
         return $this->_output;
     }
 

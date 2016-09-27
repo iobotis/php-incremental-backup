@@ -14,15 +14,6 @@ $backup = new Duplicity( '/path/to/backup', '/path/to/save' );
 
 //$backup->setPassPhrase( 'abcdef' );
 
-if( $backup->verify()  != 0 ) {
-    // back me up.
-    echo 'Back up initiated' . "\n";
-    $backup->execute();
-}
-else {
-    echo 'No need to backup.' . "\n";
-}
-
 $backupClass = new IncrementalBackup ( $backup );
 
 $backups = $backupClass->getAllBackups();
