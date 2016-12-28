@@ -3,6 +3,9 @@
 namespace Backup;
 
 /**
+ * Class wrapper for duplicity command.
+ * Currently only support backup to a directory(file://).
+ *
  * @author Ioannis Botis
  * @date 23/9/2016
  * @version: Duplicity.php 11:26 am
@@ -43,6 +46,12 @@ class Duplicity implements Command
 
     private $_output;
 
+    /**
+     * Duplicity constructor.
+     *
+     * @param string $directory the path to the directory to backup.
+     * @param string $destination the path to the directory to keep the backup files.
+     */
     public function __construct($directory, $destination)
     {
         $this->_setMainDirectory($directory);
@@ -143,24 +152,30 @@ class Duplicity implements Command
     public function getAllBackups()
     {
         $exitCode = $this->getCollectionStatus();
-        if($exitCode != 0) {
+        if ($exitCode != 0) {
             return array();
         }
         $backups = array();
         foreach ($this->_output as $line) {
             if (preg_match("/(Full|Incremental)[\s]+(.*)[\s]{10}/", $line, $results)) {
-                $backups[] = trim($results[2]);
+                $backups[] = self::_getUnixTimestamp(trim($results[2]));;
             }
         }
         return $backups;
     }
 
-    /**
-     * @param $directory
-     * @return mixed
-     */
+    private static function _getUnixTimestamp($time)
+    {
+        $d = new \DateTime($time);
+        return $d->getTimestamp();
+    }
+
     public function restore($time, $directory)
     {
+        $d = new \DateTime();
+        $d->setTimestamp($time);
+        $time = $d->format(\DateTime::W3C);
+
         if (!$this->directoryExists($directory)) {
             throw new \Exception('Directory path is invalid');
         }

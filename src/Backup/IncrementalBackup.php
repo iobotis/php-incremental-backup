@@ -33,14 +33,11 @@ class IncrementalBackup
 
     public function getAllBackups()
     {
-        $backups = $this->_duplicity->getAllBackups();
-        return $backups;
+        return $this->_duplicity->getAllBackups();
     }
 
     public function restoreTo($time, $directory)
     {
-        $d = new \DateTime($time);
-        $time = $d->format(\DateTime::W3C);
         try {
             $exitCode = $this->_duplicity->restore($time, $directory);
         } catch (Exception $e) {

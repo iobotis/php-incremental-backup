@@ -25,9 +25,12 @@ $backupClass = new IncrementalBackup ($backup);
 $backups = $backupClass->getAllBackups();
 
 echo 'Backup #, time ' . "\n";
+$d = new \DateTime();
+
 $i = 1;
 foreach ($backups as $time) {
-    echo $i++ . '. ' . $time . "\n";
+    $d->setTimestamp($time);
+    echo $i++ . '. ' . $d->format(\DateTime::W3C) . "\n";
 }
 
 echo "Please select version to restore. Type int to continue: ";
