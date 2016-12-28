@@ -8,7 +8,7 @@ namespace Backup;
  * @version: Duplicity.php 11:26 am
  * @since 23/9/2016
  */
-class Duplicity
+class Duplicity implements Command
 {
     const DUPLICITY_CMD = 'duplicity';
     const DUPLICITY_CMD_SUFIX = '2>/dev/null';
@@ -132,12 +132,27 @@ class Duplicity
         return $exitCode;
     }
 
-    public function getCollectionStatus()
+    protected function getCollectionStatus()
     {
         self::_run($this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination,
             $output, $exitCode, $this->getEnvironmentVars());
         $this->_output = $output;
         return $exitCode;
+    }
+
+    public function getAllBackups()
+    {
+        $exitCode = $this->getCollectionStatus();
+        if($exitCode != 0) {
+            return array();
+        }
+        $backups = array();
+        foreach ($this->_output as $line) {
+            if (preg_match("/(Full|Incremental)[\s]+(.*)[\s]{10}/", $line, $results)) {
+                $backups[] = trim($results[2]);
+            }
+        }
+        return $backups;
     }
 
     /**
