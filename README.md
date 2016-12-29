@@ -54,6 +54,6 @@ $backupClass = new IncrementalBackup ( $backup );
 $backups = $backupClass->getAllBackups();
 
 // Restore last backup to this directory.
-$backupClass->restoreTo( end( $backups ), '/home/yannis/www/public_html/test_restore' );
+$backupClass->restoreTo( end( $backups ), '/path/to/restore' );
 
 ```
