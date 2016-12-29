@@ -1,5 +1,7 @@
 <?php
 /**
+ * Example backup script.
+ * 
  * @author Ioannis Botis
  * @date 23/9/2016
  * @version: cron.duplicity.php 11:59 am
