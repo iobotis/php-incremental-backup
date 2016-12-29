@@ -12,7 +12,7 @@ class IncrementalBackup
 
     private $_duplicity;
 
-    public function __construct(Duplicity $duplicity)
+    public function __construct(Command $duplicity)
     {
         $this->_duplicity = $duplicity;
     }
@@ -33,22 +33,11 @@ class IncrementalBackup
 
     public function getAllBackups()
     {
-        $this->_duplicity->getCollectionStatus();
-        $output = $this->_duplicity->getOutput();
-
-        $backups = array();
-        foreach ($output as $line) {
-            if (preg_match("/(Full|Incremental)[\s]+(.*)[\s]{10}/", $line, $results)) {
-                $backups[] = trim($results[2]);
-            }
-        }
-        return $backups;
+        return $this->_duplicity->getAllBackups();
     }
 
     public function restoreTo($time, $directory)
     {
-        $d = new \DateTime($time);
-        $time = $d->format(\DateTime::W3C);
         try {
             $exitCode = $this->_duplicity->restore($time, $directory);
         } catch (Exception $e) {
