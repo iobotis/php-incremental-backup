@@ -251,6 +251,6 @@ class Duplicity implements Command
         }
         exec($vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX, $output,
             $exitCode);
-        echo $vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX . "\n";
+        //echo $vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX . "\n";
     }
 }
