@@ -4,7 +4,7 @@
  *
  * @author Ioannis Botis
  * @date 23/9/2016
- * @version: cron.duplicity.php 11:59 am
+ * @version: cron.duplicity.php 8:59 am
  * @since 23/9/2016
  */
 

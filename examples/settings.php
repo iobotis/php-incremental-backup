@@ -2,7 +2,7 @@
 /**
  * @author Ioannis Botis
  * @date 27/12/2016
- * @version: settings.php 5:43 μμ
+ * @version: settings.php 7:43 pm
  * @since 27/12/2016
  */
 

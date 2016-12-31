@@ -8,7 +8,7 @@ namespace Backup;
  *
  * @author Ioannis Botis
  * @date 23/9/2016
- * @version: Duplicity.php 11:26 am
+ * @version: Duplicity.php 8:26 pm
  * @since 23/9/2016
  */
 class Duplicity implements Command
