@@ -10,10 +10,6 @@
 
 require_once('settings.php');
 
-require_once('src/Backup/Command.php');
-require_once('src/Backup/Duplicity.php');
-require_once('src/Backup/IncrementalBackup.php');
-
 use Backup\IncrementalBackup;
 use Backup\Duplicity;
 
