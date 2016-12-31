@@ -8,7 +8,7 @@ namespace Backup;
  *
  * @author Ioannis Botis
  * @date 23/9/2016
- * @version: Duplicity.php 11:26 am
+ * @version: Duplicity.php 8:26 pm
  * @since 23/9/2016
  */
 class Duplicity implements Command
@@ -106,6 +106,19 @@ class Duplicity implements Command
         $this->_options['--no-encryption']['use'] = false;
     }
 
+    /**
+     * Exclude subdirectories from backup.
+     * Multiple level paths supported eg. ["sudir1", "subdir2/dir"].
+     * Not full path, but relative paths.
+     * If a subdirectory does not exist, it will be ignored.
+     *
+     * @param array $subDirs an array of subdirectories to exclude.
+     */
+    public function setExludedSubDirectories(array $subDirs)
+    {
+        $this->_excluded_directories = $subDirs;
+    }
+
     protected function getEnvironmentVars()
     {
         $vars = array();
@@ -197,7 +210,7 @@ class Duplicity implements Command
         if (empty($this->_excluded_directories)) {
             return '';
         } else {
-            return '--exclude **' . implode(' --exclude **', $this->_excluded_directories) . ' ';
+            return ' --exclude **' . implode(' --exclude **', $this->_excluded_directories) . ' ';
         }
     }
 
@@ -251,6 +264,6 @@ class Duplicity implements Command
         }
         exec($vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX, $output,
             $exitCode);
-        //echo $vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX . "\n";
+        echo $vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX . "\n";
     }
 }

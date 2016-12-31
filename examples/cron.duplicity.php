@@ -1,10 +1,10 @@
 <?php
 /**
  * Example backup script.
- * 
+ *
  * @author Ioannis Botis
  * @date 23/9/2016
- * @version: cron.duplicity.php 11:59 am
+ * @version: cron.duplicity.php 8:59 am
  * @since 23/9/2016
  */
 
@@ -15,7 +15,7 @@ use Backup\Duplicity;
 
 echo "Version: " . Duplicity::getVersion() . "\n";
 
-$backup = new Duplicity( $path_to_backup, $path_to_save );
+$backup = new Duplicity($path_to_backup, $path_to_save);
 
 //$backup->setPassPhrase( 'abcdef' );
 

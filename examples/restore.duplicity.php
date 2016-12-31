@@ -4,7 +4,7 @@
  *
  * @author Ioannis Botis
  * @date 27/9/2016
- * @version: restore.duplicity.php 12:55 am
+ * @version: restore.duplicity.php 9:55 am
  * @since 27/9/2016
  */
 

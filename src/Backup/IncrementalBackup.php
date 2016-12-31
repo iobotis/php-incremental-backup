@@ -4,7 +4,7 @@ namespace Backup;
 /**
  * @author Ioannis Botis
  * @date 23/9/2016
- * @version: IncrementalBackup.php 1:42 μμ
+ * @version: IncrementalBackup.php 7:42 pm
  * @since 23/9/2016
  */
 class IncrementalBackup
