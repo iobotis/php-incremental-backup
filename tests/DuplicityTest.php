@@ -20,7 +20,7 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
 
     public function setUp()
     {
-        Duplicity::$unitTestEnabled = true;
+        //Duplicity::$unitTestEnabled = true;
         $this->duplicity = new Duplicity(__DIR__, __DIR__);
         parent::setUp();
     }
