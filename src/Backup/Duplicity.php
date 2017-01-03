@@ -46,6 +46,8 @@ class Duplicity implements Command
 
     private $_output;
 
+    public static $unitTestEnabled = false;
+
     /**
      * Duplicity constructor.
      *
@@ -80,7 +82,7 @@ class Duplicity implements Command
 
     public static function isInstalled()
     {
-        exec(self::DUPLICITY_CMD . ' -V', $output, $exitCode);
+        self::exec(self::DUPLICITY_CMD . ' -V', $output, $exitCode);
         if ($exitCode) {
             return false;
         }
@@ -92,7 +94,7 @@ class Duplicity implements Command
         if (isset(self::$_version)) {
             return self::$_version;
         }
-        exec(self::DUPLICITY_CMD . ' -V', $output, $exitCode);
+        self::exec(self::DUPLICITY_CMD . ' -V', $output, $exitCode);
         $output = implode('', $output);
         return trim(str_replace('duplicity', '', $output));
     }
@@ -262,8 +264,19 @@ class Duplicity implements Command
         foreach ($environment_vars as $key => $value) {
             $vars .= $key . '=' . $value . " ";
         }
-        exec($vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX, $output,
+        self::exec($vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX, $output,
             $exitCode);
-        echo $vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX . "\n";
+        //echo $vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX . "\n";
+    }
+
+    private static function exec($command, &$output, &$exitCode)
+    {
+        if(self::$unitTestEnabled) {
+
+            $output = array();
+            $exitCode = 1;
+            return;
+        }
+        exec($command, $output, $exitCode);
     }
 }
