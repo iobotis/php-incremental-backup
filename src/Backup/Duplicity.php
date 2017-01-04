@@ -16,6 +16,9 @@ class Duplicity implements Command
     const DUPLICITY_CMD = 'duplicity';
     const DUPLICITY_CMD_SUFIX = '2>/dev/null';
 
+    /**
+     * @var array options of duplicity command.
+     */
     private $_options = array(
         '--no-encryption' => array(
             'since' => '0.1',
@@ -46,8 +49,6 @@ class Duplicity implements Command
 
     private $_output;
 
-    public static $unitTestEnabled = false;
-
     /**
      * Duplicity constructor.
      *
@@ -62,7 +63,7 @@ class Duplicity implements Command
 
     private function _setMainDirectory($directory)
     {
-        if (!self::isInstalled()) {
+        if (!$this->isInstalled()) {
             throw new \Exception('Duplicity not installed');
         }
         if (!$this->directoryExists($directory)) {
@@ -80,7 +81,11 @@ class Duplicity implements Command
         return is_dir($directory);
     }
 
-    public static function isInstalled()
+    /**
+     * Check if duplicity is installed.
+     * @return bool
+     */
+    public function isInstalled()
     {
         self::exec(self::DUPLICITY_CMD . ' -V', $output, $exitCode);
         if ($exitCode) {
@@ -89,14 +94,18 @@ class Duplicity implements Command
         return true;
     }
 
-    public static function getVersion()
+    /**
+     * Returns the version of duplicity.
+     * @return string
+     */
+    public function getVersion()
     {
         if (isset(self::$_version)) {
             return self::$_version;
         }
         self::exec(self::DUPLICITY_CMD . ' -V', $output, $exitCode);
         $output = implode('', $output);
-        return trim(str_replace('duplicity', '', $output));
+        return self::$_version = trim(str_replace('duplicity', '', $output));
     }
 
     public function setPassPhrase($passphrase)
@@ -194,7 +203,7 @@ class Duplicity implements Command
         if (!$this->directoryExists($directory)) {
             throw new \Exception('Directory path is invalid');
         }
-        $is_empty = self::_isDirEmpty($directory);
+        $is_empty = $this->isDirEmpty($directory);
         if ($is_empty === null) {
             throw new \Exception('Directory path is not readable');
         }
@@ -221,7 +230,7 @@ class Duplicity implements Command
         $options = array();
 
         foreach ($this->_options as $option => $settings) {
-            if (self::_isSupported($settings['since'])) {
+            if ($this->_isSupported($settings['since'])) {
                 if ($settings['use']) {
                     $options[] = $option;
                 }
@@ -232,13 +241,13 @@ class Duplicity implements Command
         return implode(' ', $options);
     }
 
-    private static function _isSupported($since)
+    private function _isSupported($since)
     {
-        $version = self::getVersion();
+        $version = $this->getVersion();
         return version_compare($version, $since, '>=');
     }
 
-    private static function _isDirEmpty($dir)
+    protected function isDirEmpty($dir)
     {
         if (!is_readable($dir)) {
             return null;
@@ -271,12 +280,6 @@ class Duplicity implements Command
 
     private static function exec($command, &$output, &$exitCode)
     {
-        if(self::$unitTestEnabled) {
-
-            $output = array();
-            $exitCode = 1;
-            return;
-        }
         exec($command, $output, $exitCode);
     }
 }

@@ -1,23 +1,35 @@
 <?php
 /**
- * 
- * User: 
- * Date: 1/4/17
- * Time: 12:01 AM
+ * @author Ioannis Botis
+ * @date 02/01/2017
+ * @version: TestHelper.php 7:43 pm
+ * @since 02/01/2017
  */
 
 namespace Backup;
 
-
+/**
+ * Class TestHelper
+ * @package Backup
+ */
 class TestHelper
 {
+    public static $commands = array();
+    public static $output = array();
 
+    public static function reset()
+    {
+        self::$commands = array();
+    }
 }
 
 function exec($command, &$output, &$exitCode)
 {
-    echo 'worked';
-    $output = array();
+    TestHelper::$commands[] = $command;
+    $output = TestHelper::$output;
     $exitCode = 0;
-    //exec($command, $output, $exitCode);
+}
+
+function is_dir($filename) {
+    return true;
 }
