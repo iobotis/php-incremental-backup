@@ -13,12 +13,12 @@ require_once('settings.php');
 use Backup\IncrementalBackup;
 use Backup\Duplicity;
 
-echo "Version: " . Duplicity::getVersion() . "\n";
+$duplicity = new Duplicity($path_to_backup, $path_to_save);
 
-$backup = new Duplicity($path_to_backup, $path_to_save);
+echo "Version: " . $duplicity->getVersion() . "\n";
 
 //$backup->setPassPhrase( 'abcdef' );
-$backupClass = new IncrementalBackup ($backup);
+$backupClass = new IncrementalBackup ($duplicity);
 
 $backups = $backupClass->getAllBackups();
 
