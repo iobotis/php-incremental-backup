@@ -45,6 +45,11 @@ class Duplicity implements Command
 
     private $_destination;
 
+    /**
+     * @var Binary
+     */
+    private $_binary;
+
     private static $_version;
 
     private $_output;
@@ -54,11 +59,13 @@ class Duplicity implements Command
      *
      * @param string $directory the path to the directory to backup.
      * @param string $destination the path to the directory to keep the backup files.
+     * @param Binary $binary
      */
-    public function __construct($directory, $destination)
+    public function __construct($directory, $destination, Binary $binary)
     {
         $this->_setMainDirectory($directory);
         $this->_destination = $destination;
+        $this->_binary = $binary;
     }
 
     private function _setMainDirectory($directory)
@@ -151,14 +158,18 @@ class Duplicity implements Command
      */
     public function verify($compare_data = true)
     {
-        self::_run($this->_getOptions() . $this->_getExcludedPaths() . ' verify ' . ($compare_data ? '--compare-data file://' : '') . $this->_destination . ' ' . $this->_main_directory,
-            $output, $exitCode, $this->getEnvironmentVars());
-        $this->_output = $output;
-        
-        if($exitCode == 0) {
+        $exitCode = $this->_binary->run(
+            $this->_getOptions() . $this->_getExcludedPaths() . ' verify ' .
+            ($compare_data ? '--compare-data file://' : '') . $this->_destination . ' ' .
+            $this->_main_directory,
+            $this->getEnvironmentVars()
+        );
+
+        $this->_output = $this->_binary->getOutput();
+
+        if ($exitCode == 0) {
             return self::NO_CHANGES;
-        }
-        elseif($exitCode == 1) {
+        } elseif ($exitCode == 1) {
             return self::IS_CHANGED;
         }
         return self::CORRUPT_DATA;
@@ -166,17 +177,22 @@ class Duplicity implements Command
 
     public function execute($full = false)
     {
-        self::_run($this->_getOptions() . $this->_getExcludedPaths() . ' ' . ($full ? 'full ' : '') . $this->_main_directory . ' file://' . $this->_destination,
-            $output, $exitCode, $this->getEnvironmentVars());
-        $this->_output = $output;
+        $exitCode = $this->_binary->run(
+            $this->_getOptions() . $this->_getExcludedPaths() . ' ' .
+            ($full ? 'full ' : '') . $this->_main_directory . ' file://' . $this->_destination,
+            $this->getEnvironmentVars()
+        );
+        $this->_output = $this->_binary->getOutput();
         return $exitCode;
     }
 
     protected function getCollectionStatus()
     {
-        self::_run($this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination,
-            $output, $exitCode, $this->getEnvironmentVars());
-        $this->_output = $output;
+        $exitCode = $this->_binary->run(
+            $this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination,
+            $this->getEnvironmentVars()
+        );
+        $this->_output = $this->_binary->getOutput();
         return $exitCode;
     }
 
@@ -217,9 +233,12 @@ class Duplicity implements Command
         if ($is_empty === false) {
             throw new \Exception('Directory path should be empty');
         }
-        self::_run($this->_getOptions() . $this->_getExcludedPaths() . ' restore file://' . $this->_destination . ' ' . $directory . ' --time=' . $time,
-            $output, $exitCode, $this->getEnvironmentVars());
-        $this->_output = $output;
+        $exitCode = $this->_binary->run(
+            $this->_getOptions() . $this->_getExcludedPaths() . ' restore file://' . $this->_destination . ' ' .
+            $directory . ' --time=' . $time,
+            $this->getEnvironmentVars()
+        );
+        $this->_output = $this->_binary->getOutput();
         return $exitCode;
     }
 

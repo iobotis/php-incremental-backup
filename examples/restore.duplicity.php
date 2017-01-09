@@ -10,10 +10,12 @@
 
 require_once('settings.php');
 
+use Backup\Binary;
 use Backup\IncrementalBackup;
 use Backup\Duplicity;
 
-$duplicity = new Duplicity($path_to_backup, $path_to_save);
+$binary = new Binary('duplicity');
+$duplicity = new Duplicity($path_to_backup, $path_to_save, $binary);
 
 echo "Version: " . $duplicity->getVersion() . "\n";
 
