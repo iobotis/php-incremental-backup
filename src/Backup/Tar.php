@@ -1,8 +1,8 @@
 <?php
 /**
- * @author Ioannis Botis <ioannis.botis@interactivedata.com>
+ * @author Ioannis Botis
  * @date 4/1/2017
- * @version: Tar.php 3:52 μμ
+ * @version: Tar.php 10:52 pm
  * @since 4/1/2017
  */
 
@@ -29,8 +29,9 @@ class Tar implements Command
     private $_output;
 
     private static $_version;
+
     /**
-     * Duplicity constructor.
+     * Tar constructor.
      *
      * @param string $directory the path to the directory to backup.
      * @param string $destination the path to the directory to keep the backup files.
@@ -88,50 +89,137 @@ class Tar implements Command
         return self::$_version = trim(str_replace('tar', '', end($output)));
     }
 
+    /**
+     * Get the backup settings, # of backups and backup unix timestamps.
+     *
+     * @return mixed|object
+     */
+    public function getSettings()
+    {
+        if (file_exists($this->_destination . DIRECTORY_SEPARATOR . $this->getSettingsFile())) {
+            return json_decode(file_get_contents($this->_destination . DIRECTORY_SEPARATOR . $this->getSettingsFile()));
+        } // first time to backup.
+        else {
+            return (object)array(
+                "number" => 0,
+                "backups" => array()
+            );
+        }
+    }
+
+    /**
+     * Get the settings file name.
+     *
+     * @return string
+     */
+    protected function getSettingsFile()
+    {
+        return $this->getMainDirectoryBasename() . '.json';
+    }
+
     public function verify()
     {
         if (!is_readable($this->_destination)) {
-            return false;
+            return self::CORRUPT_DATA;
         }
-        return true;
+
+        $settings = $this->getSettings();
+        self::exec(self::CMD . ' --compare --file=' . $this->_destination . DIRECTORY_SEPARATOR .
+            $this->getArchiveFilename($settings->number) . ' -C ' . $this->getMainDirectoryName() .
+            ' ' . $this->getMainDirectoryBasename(), $output, $exitCode);
+        if($exitCode == 0) {
+            return self::NO_CHANGES;
+        }
+        elseif($exitCode == 1) {
+            return self::IS_CHANGED;
+        }
+        return self::CORRUPT_DATA;
 
         // @todo check archives exist, main file.
+        // @todo compare with directory.
         //self::exec(self::CMD . '');
     }
 
     public function execute()
     {
-        // tar cvf archive.1.tar -g archive.snar backup
+        $settings = $this->getSettings();
+        // Option -C goes before option -g.
         self::exec(self::CMD . ' cvf ' . $this->_destination . DIRECTORY_SEPARATOR .
-            $this->getArchiveFilename() . ' -g ' . $this->_destination . DIRECTORY_SEPARATOR .
-            $this->getSnapshotFileName() . ' ' . $this->_main_directory , $output, $exitCode);
+            $this->getArchiveFilename($settings->number + 1) . ' -C ' . $this->getMainDirectoryName() .
+            ' -g ' . $this->_destination . DIRECTORY_SEPARATOR .
+            $this->getSnapshotFileName() . ' ' . $this->getMainDirectoryBasename(), $output, $exitCode);
+        if ($exitCode == 0) {
+            $this->saveSettings();
+        }
         $this->_output = $output;
         return $exitCode;
     }
 
     public function getAllBackups()
     {
-
+        $settings = $this->getSettings();
+        return $settings->backups;
     }
 
     public function restore($time, $directory)
     {
-        
+        $settings = $this->getSettings();
+
+        $restore_till_here = array_search ($time, $settings->backups) + 1;
+
+        for ($i = 1; $i <= $restore_till_here; $i++) {
+            self::exec(self::CMD . ' xvf ' . $this->_destination . DIRECTORY_SEPARATOR .
+                $this->getArchiveFilename($i) . ' -g ' . '/dev/null' .
+                ' -C ' . $directory, $output, $exitCode);
+        }
+        $this->_output = $output;
+        return $exitCode;
     }
 
+    /**
+     * New backup available. Update settings.
+     */
+    protected function saveSettings()
+    {
+        $settings = $this->getSettings();
+        $settings->number++;
+        $settings->backups[] = time();
+        file_put_contents($this->_destination . DIRECTORY_SEPARATOR . $this->getSettingsFile(), json_encode($settings));
+    }
+
+    /**
+     * Get incremental snapshot filename.
+     *
+     * @return string
+     */
     protected function getSnapshotFileName()
     {
-        return basename($this->_main_directory) . '.snar';
+        return $this->getMainDirectoryBasename() . '.snar';
     }
 
-    protected function getArchiveFilename()
+    /**
+     * Get archive filename.
+     *
+     * @param int $archive_number
+     * @return string
+     */
+    protected function getArchiveFilename($archive_number = 1)
     {
-        return basename($this->_main_directory) . '.1' . '.tar';
+        return $this->getMainDirectoryBasename() . '.' . $archive_number . '.tar';
+    }
+
+    protected function getMainDirectoryBasename()
+    {
+        return basename($this->_main_directory);
+    }
+
+    protected function getMainDirectoryName()
+    {
+        return dirname($this->_main_directory, 1);
     }
 
     private static function exec($command, &$output, &$exitCode)
     {
-        echo $command;
         exec($command, $output, $exitCode);
     }
 }

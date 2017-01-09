@@ -10,36 +10,47 @@ namespace Backup;
 class IncrementalBackup
 {
 
-    private $_duplicity;
+    /**
+     * @var Command
+     */
+    private $_command;
 
     public function __construct(Command $duplicity)
     {
-        $this->_duplicity = $duplicity;
+        $this->_command = $duplicity;
     }
 
+    /**
+     * @return bool
+     * @throws \Exception
+     */
     public function isChanged()
     {
+        $status = $this->_command->verify();
         // Use verify to compare data between last backup and current data.
-        if ($this->_duplicity->verify() == 0) {
+        if ($status == Command::NO_CHANGES) {
             return false;
         }
-        return true;
+        elseif ($status == Command::IS_CHANGED) {
+            return true;
+        }
+        throw new \Exception('Corrupt data');
     }
 
     public function createBackup($full = false)
     {
-        $this->_duplicity->execute($full);
+        $this->_command->execute($full);
     }
 
     public function getAllBackups()
     {
-        return $this->_duplicity->getAllBackups();
+        return $this->_command->getAllBackups();
     }
 
     public function restoreTo($time, $directory)
     {
         try {
-            $exitCode = $this->_duplicity->restore($time, $directory);
+            $exitCode = $this->_command->restore($time, $directory);
         } catch (Exception $e) {
             return false;
         }

@@ -9,9 +9,18 @@
 require_once('settings.php');
 
 use Backup\Tar;
+use Backup\IncrementalBackup;
 
 $tar = new Tar($path_to_backup, $path_to_save);
 
 echo "Version: " . $tar->getVersion() . "\n";
 
-$tar->execute();
+$backupClass = new IncrementalBackup ($tar);
+
+if ($backupClass->isChanged()) {
+    // back me up.
+    echo 'Back up initiated' . "\n";
+    $backupClass->createBackup();
+} else {
+    echo 'No need to backup.' . "\n";
+}
