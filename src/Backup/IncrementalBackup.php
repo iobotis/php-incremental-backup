@@ -30,8 +30,9 @@ class IncrementalBackup
         // Use verify to compare data between last backup and current data.
         if ($status == Command::NO_CHANGES) {
             return false;
-        }
-        elseif ($status == Command::IS_CHANGED) {
+        } elseif ($status == Command::IS_CHANGED) {
+            return true;
+        } elseif ($status == Command::NO_BACKUP_FOUND) {
             return true;
         }
         throw new \Exception('Corrupt data');

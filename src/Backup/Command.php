@@ -20,7 +20,8 @@ interface Command
      */
     const NO_CHANGES = 0;
     const IS_CHANGED = 1;
-    const CORRUPT_DATA = 2;
+    const NO_BACKUP_FOUND = 2;
+    const CORRUPT_DATA = 3;
 
     /**
      * Test whether there are any new changes to the files since the last backup.

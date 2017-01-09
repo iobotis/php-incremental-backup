@@ -8,7 +8,12 @@
 
 namespace Backup;
 
-
+/**
+ * Class Tar
+ * Class wrapper for tar command.
+ *
+ * @package Backup
+ */
 class Tar implements Command
 {
 
@@ -77,6 +82,7 @@ class Tar implements Command
 
     /**
      * Returns the version of duplicity.
+     *
      * @return string
      */
     public function getVersion()
@@ -87,6 +93,20 @@ class Tar implements Command
         self::exec(self::CMD . ' --version', $output, $exitCode);
         $output = explode(' ', $output[0]);
         return self::$_version = trim(str_replace('tar', '', end($output)));
+    }
+
+    /**
+     * Exclude subdirectories from backup.
+     * Multiple level paths supported eg. ["sudir1", "subdir2/dir"].
+     * Not full path, but relative paths.
+     * If a subdirectory does not exist, it will be ignored.
+     * @todo check if it only excludes folder relative to the root.
+     *
+     * @param array $subDirs an array of subdirectories to exclude.
+     */
+    public function setExludedSubDirectories(array $subDirs)
+    {
+        $this->_excluded_directories = $subDirs;
     }
 
     /**
@@ -124,13 +144,17 @@ class Tar implements Command
         }
 
         $settings = $this->getSettings();
+        // no backups found.
+        if ($settings->number == 0) {
+            return self::NO_BACKUP_FOUND;
+        }
         self::exec(self::CMD . ' --compare --file=' . $this->_destination . DIRECTORY_SEPARATOR .
             $this->getArchiveFilename($settings->number) . ' -C ' . $this->getMainDirectoryName() .
+            ' ' . $this->_getExcludedPaths() .
             ' ' . $this->getMainDirectoryBasename(), $output, $exitCode);
-        if($exitCode == 0) {
+        if ($exitCode == 0) {
             return self::NO_CHANGES;
-        }
-        elseif($exitCode == 1) {
+        } elseif ($exitCode == 1) {
             return self::IS_CHANGED;
         }
         return self::CORRUPT_DATA;
@@ -146,6 +170,7 @@ class Tar implements Command
         // Option -C goes before option -g.
         self::exec(self::CMD . ' cvf ' . $this->_destination . DIRECTORY_SEPARATOR .
             $this->getArchiveFilename($settings->number + 1) . ' -C ' . $this->getMainDirectoryName() .
+            ' ' . $this->_getExcludedPaths() .
             ' -g ' . $this->_destination . DIRECTORY_SEPARATOR .
             $this->getSnapshotFileName() . ' ' . $this->getMainDirectoryBasename(), $output, $exitCode);
         if ($exitCode == 0) {
@@ -165,7 +190,7 @@ class Tar implements Command
     {
         $settings = $this->getSettings();
 
-        $restore_till_here = array_search ($time, $settings->backups) + 1;
+        $restore_till_here = array_search($time, $settings->backups) + 1;
 
         for ($i = 1; $i <= $restore_till_here; $i++) {
             self::exec(self::CMD . ' xvf ' . $this->_destination . DIRECTORY_SEPARATOR .
@@ -218,8 +243,26 @@ class Tar implements Command
         return dirname($this->_main_directory, 1);
     }
 
+    /**
+     * @todo Fix file patterns to use relative path.
+     *
+     * @return string
+     */
+    private function _getExcludedPaths()
+    {
+        if (empty($this->_excluded_directories)) {
+            return '';
+        } else {
+            return " --exclude=" . $this->getMainDirectoryBasename() . DIRECTORY_SEPARATOR .
+            implode(
+                " --exclude=" . $this->getMainDirectoryBasename() . DIRECTORY_SEPARATOR,
+                $this->_excluded_directories
+            ) . ' ';
+        }
+    }
+
     private static function exec($command, &$output, &$exitCode)
     {
-        exec($command, $output, $exitCode);
+        exec($command . ' ' . self::CMD_SUFIX, $output, $exitCode);
     }
 }
