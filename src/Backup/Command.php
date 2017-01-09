@@ -16,10 +16,17 @@ namespace Backup;
 interface Command
 {
     /**
+     * Verify return values.
+     */
+    const NO_CHANGES = 0;
+    const IS_CHANGED = 1;
+    const CORRUPT_DATA = 2;
+
+    /**
      * Test whether there are any new changes to the files since the last backup.
      * Also verify if the backup is not corrupted.
      *
-     * @return boolean true if they are any changes, false otherwise.
+     * @return integer one of the constants NO_CHANGES,IS_CHANGED or CORRUPT_DATA.
      */
     public function verify();
 

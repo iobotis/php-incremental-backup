@@ -154,7 +154,14 @@ class Duplicity implements Command
         self::_run($this->_getOptions() . $this->_getExcludedPaths() . ' verify ' . ($compare_data ? '--compare-data file://' : '') . $this->_destination . ' ' . $this->_main_directory,
             $output, $exitCode, $this->getEnvironmentVars());
         $this->_output = $output;
-        return $exitCode;
+        
+        if($exitCode == 0) {
+            return self::NO_CHANGES;
+        }
+        elseif($exitCode == 1) {
+            return self::IS_CHANGED;
+        }
+        return self::CORRUPT_DATA;
     }
 
     public function execute($full = false)
