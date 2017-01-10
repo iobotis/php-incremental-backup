@@ -14,22 +14,14 @@ namespace Backup;
  */
 class TestHelper
 {
-    public static $commands = array();
     public static $output = array();
 
     public static function reset()
     {
-        self::$commands = array();
     }
 }
 
-function exec($command, &$output, &$exitCode)
+function is_dir($filename)
 {
-    TestHelper::$commands[] = $command;
-    $output = TestHelper::$output;
-    $exitCode = 0;
-}
-
-function is_dir($filename) {
     return true;
 }

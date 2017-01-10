@@ -31,6 +31,11 @@ class Tar implements Command
 
     private $_destination;
 
+    /**
+     * @var Binary
+     */
+    private $_binary;
+
     private $_output;
 
     private static $_version;
@@ -41,8 +46,9 @@ class Tar implements Command
      * @param string $directory the path to the directory to backup.
      * @param string $destination the path to the directory to keep the backup files.
      */
-    public function __construct($directory, $destination)
+    public function __construct($directory, $destination, Binary $binary)
     {
+        $this->_binary = $binary;
         $this->_setMainDirectory($directory);
         $this->_destination = $destination;
     }
@@ -73,7 +79,10 @@ class Tar implements Command
      */
     public function isInstalled()
     {
-        self::exec(self::CMD . ' --version', $output, $exitCode);
+        $exitCode = $this->_binary->run(' --version',
+            array()
+        );
+
         if ($exitCode) {
             return false;
         }
@@ -90,7 +99,11 @@ class Tar implements Command
         if (isset(self::$_version)) {
             return self::$_version;
         }
-        self::exec(self::CMD . ' --version', $output, $exitCode);
+        $exitCode = $this->_binary->run(' --version',
+            array()
+        );
+
+        $output = $this->_binary->getOutput();
         $output = explode(' ', $output[0]);
         return self::$_version = trim(str_replace('tar', '', end($output)));
     }
@@ -148,10 +161,13 @@ class Tar implements Command
         if ($settings->number == 0) {
             return self::NO_BACKUP_FOUND;
         }
-        self::exec(self::CMD . ' --compare --file=' . $this->_destination . DIRECTORY_SEPARATOR .
+        $exitCode = $this->_binary->run(' --compare --file=' . $this->_destination . DIRECTORY_SEPARATOR .
             $this->getArchiveFilename($settings->number) . ' -C ' . $this->getMainDirectoryName() .
             ' ' . $this->_getExcludedPaths() .
-            ' ' . $this->getMainDirectoryBasename(), $output, $exitCode);
+            ' ' . $this->getMainDirectoryBasename(),
+            array()
+        );
+
         if ($exitCode == 0) {
             return self::NO_CHANGES;
         } elseif ($exitCode == 1) {
@@ -168,15 +184,18 @@ class Tar implements Command
     {
         $settings = $this->getSettings();
         // Option -C goes before option -g.
-        self::exec(self::CMD . ' cvf ' . $this->_destination . DIRECTORY_SEPARATOR .
+        $exitCode = $this->_binary->run(' cvf ' . $this->_destination . DIRECTORY_SEPARATOR .
             $this->getArchiveFilename($settings->number + 1) . ' -C ' . $this->getMainDirectoryName() .
             ' ' . $this->_getExcludedPaths() .
             ' -g ' . $this->_destination . DIRECTORY_SEPARATOR .
-            $this->getSnapshotFileName() . ' ' . $this->getMainDirectoryBasename(), $output, $exitCode);
+            $this->getSnapshotFileName() . ' ' . $this->getMainDirectoryBasename(),
+            array()
+        );
+
+        $this->_output = $this->_binary->getOutput();
         if ($exitCode == 0) {
             $this->saveSettings();
         }
-        $this->_output = $output;
         return $exitCode;
     }
 
@@ -193,11 +212,15 @@ class Tar implements Command
         $restore_till_here = array_search($time, $settings->backups) + 1;
 
         for ($i = 1; $i <= $restore_till_here; $i++) {
-            self::exec(self::CMD . ' xvf ' . $this->_destination . DIRECTORY_SEPARATOR .
+            $exitCode = $this->_binary->run(
+                ' xvf ' . $this->_destination . DIRECTORY_SEPARATOR .
                 $this->getArchiveFilename($i) . ' -g ' . '/dev/null' .
-                ' -C ' . $directory, $output, $exitCode);
+                ' -C ' . $directory,
+                array()
+            );
+
+            $this->_output = $this->_binary->getOutput();
         }
-        $this->_output = $output;
         return $exitCode;
     }
 
@@ -259,10 +282,5 @@ class Tar implements Command
                 $this->_excluded_directories
             ) . ' ';
         }
-    }
-
-    private static function exec($command, &$output, &$exitCode)
-    {
-        exec($command . ' ' . self::CMD_SUFIX, $output, $exitCode);
     }
 }
