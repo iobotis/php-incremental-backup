@@ -17,7 +17,7 @@ $settings = array(
     'path_to_backup' => $path_to_backup,
     'path_to_backup_at' => $path_to_save,
 //    'passphrase' => 'abcdef',
-//    'exclude' => 'folder'
+//    'exclude' => array('folder')
 );
 
 $duplicity = CommandFactory::create('Duplicity', $settings);
