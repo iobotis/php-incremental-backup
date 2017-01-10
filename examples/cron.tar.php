@@ -14,6 +14,7 @@ use Backup\IncrementalBackup;
 $settings = array(
     'path_to_backup' => $path_to_backup,
     'path_to_backup_at' => $path_to_save,
+    //'exclude' => 'folder'
 );
 
 $tar = CommandFactory::create('Tar', $settings);

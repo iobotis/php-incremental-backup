@@ -16,7 +16,8 @@ use Backup\IncrementalBackup;
 $settings = array(
     'path_to_backup' => $path_to_backup,
     'path_to_backup_at' => $path_to_save,
-//    'passphrase' => 'abcdef'
+//    'passphrase' => 'abcdef',
+//    'exclude' => 'folder'
 );
 
 $duplicity = CommandFactory::create('Duplicity', $settings);

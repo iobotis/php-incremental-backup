@@ -38,7 +38,7 @@ $handle = fopen("php://stdin", "r");
 $backup_to_restore = intval(fgets($handle));
 
 if (!in_array($backup_to_restore, range(1, $i - 1))) {
-    echo 'invalid backup selected.';
+    echo 'invalid backup selected.' . "\n";
     exit;
 }
 
