@@ -68,10 +68,10 @@ class Duplicity implements Command
     private function _setMainDirectory($directory)
     {
         if (!$this->isInstalled()) {
-            throw new \Exception('Duplicity not installed');
+            throw new \Backup\Exception\BinaryNotFoundException('Duplicity not installed');
         }
         if (!$this->directoryExists($directory)) {
-            throw new \Exception('Directory path is invalid');
+            throw new \Backup\Exception\InvalidArgumentException('Directory path is invalid');
         }
         $this->_main_directory = $directory;
     }
@@ -115,7 +115,7 @@ class Duplicity implements Command
     public function setPassPhrase($passphrase)
     {
         if (!is_string($passphrase)) {
-            throw new \Exception('Passphrase should be a string');
+            throw new \Backup\Exception\InvalidArgumentException('Passphrase should be a string');
         }
         $this->_passphrase = $passphrase;
         $this->_options['--no-encryption']['use'] = false;
@@ -223,14 +223,14 @@ class Duplicity implements Command
         $time = $d->format(\DateTime::W3C);
 
         if (!$this->directoryExists($directory)) {
-            throw new \Exception('Directory path is invalid');
+            throw new \Backup\Exception\InvalidArgumentException('Directory path is invalid');
         }
         $is_empty = $this->isDirEmpty($directory);
         if ($is_empty === null) {
-            throw new \Exception('Directory path is not readable');
+            throw new \Backup\Exception\InvalidArgumentException('Directory path is not readable');
         }
         if ($is_empty === false) {
-            throw new \Exception('Directory path should be empty');
+            throw new \Backup\Exception\InvalidArgumentException('Directory path should be empty');
         }
         $exitCode = $this->_binary->run(
             $this->_getOptions() . $this->_getExcludedPaths() . ' restore file://' . $this->_destination . ' ' .
