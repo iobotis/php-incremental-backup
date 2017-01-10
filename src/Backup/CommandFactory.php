@@ -38,7 +38,7 @@ class CommandFactory
      *
      * @param $class
      * @param array $settings
-     * @throws \Exception
+     * @throws \Backup\Exception\InvalidArgumentException
      */
     public static function create($class, array $settings = null)
     {
@@ -46,20 +46,20 @@ class CommandFactory
         if ($settings === null && is_array($class)) {
             $settings = $class;
             if (empty($settings['class'])) {
-                throw new \Exception('Please specify the class.');
+                throw new \Backup\Exception\InvalidArgumentException('Please specify the class.');
             }
             $class = $settings['class'];
         }
         // Check if class is supported.
         if (!in_array($class, self::$_classes_supported)) {
-            throw new \Exception('Class not supported.');
+            throw new \Backup\Exception\InvalidArgumentException('Class not supported.');
         }
 
         if ($class === 'Duplicity') {
             $binary = new Binary('duplicity');
 
             if (empty($settings['path_to_backup']) || empty($settings['path_to_backup_at'])) {
-                throw new \Exception('Please see the documentation for the settings needed.');
+                throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
             }
             $duplicity = new Duplicity($settings['path_to_backup'], $settings['path_to_backup_at'], $binary);
 
@@ -76,7 +76,7 @@ class CommandFactory
             $binary = new Binary('tar');
 
             if (empty($settings['path_to_backup']) || empty($settings['path_to_backup_at'])) {
-                throw new \Exception('Please see the documentation for the settings needed.');
+                throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
             }
             $tar = new Tar($settings['path_to_backup'], $settings['path_to_backup_at'], $binary);
 
@@ -86,6 +86,6 @@ class CommandFactory
 
             return $tar;
         }
-        throw new \Exception('Class not yet implemented!');
+        throw new \Backup\Exception\InvalidArgumentException('Class not yet implemented!');
     }
 }

@@ -22,7 +22,7 @@ class IncrementalBackup
 
     /**
      * @return bool
-     * @throws \Exception
+     * @throws \Backup\RuntimeException
      */
     public function isChanged()
     {
@@ -35,7 +35,7 @@ class IncrementalBackup
         } elseif ($status == Command::NO_BACKUP_FOUND) {
             return true;
         }
-        throw new \Exception('Corrupt data');
+        throw new \Backup\RuntimeException('Corrupt data');
     }
 
     public function createBackup($full = false)

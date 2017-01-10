@@ -56,10 +56,10 @@ class Tar implements Command
     private function _setMainDirectory($directory)
     {
         if (!$this->isInstalled()) {
-            throw new \Exception('Tar not installed');
+            throw new \Backup\Exception\BinaryNotFoundException('Tar is not installed');
         }
         if (!$this->directoryExists($directory)) {
-            throw new \Exception('Tar path is invalid');
+            throw new \Backup\Exception\InvalidArgumentException('Tar backup path is invalid');
         }
         $this->_main_directory = $directory;
     }
