@@ -8,12 +8,15 @@
 
 require_once('settings.php');
 
-use Backup\Binary;
-use Backup\Tar;
+use Backup\CommandFactory;
 use Backup\IncrementalBackup;
 
-$binary = new Binary('tar');
-$tar = new Tar($path_to_backup, $path_to_save, $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'path_to_backup_at' => $path_to_save,
+);
+
+$tar = CommandFactory::create('Tar', $settings);
 
 echo "Version: " . $tar->getVersion() . "\n";
 

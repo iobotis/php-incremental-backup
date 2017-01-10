@@ -103,6 +103,36 @@ $backupClass->restoreTo( end( $backups ), '/path/to/restore' );
 
 ```
 
+6)
+```php
+use Backup\CommandFactory;
+use Backup\IncrementalBackup;
+
+$settings = array(
+    'path_to_backup' => '/path/to/backup',
+    'path_to_backup_at' => '/path/to/backup/at',
+//    'passphrase' => 'abcdef'
+);
+
+$duplicity = CommandFactory::create('Duplicity', $settings);
+
+$backupClass = new IncrementalBackup ($duplicity);
+
+$backups = $backupClass->getAllBackups();
+foreach ($backups as $time) {
+    echo 'There is a backup at ' . $time . "\n";
+}
+
+if ($backupClass->isChanged()) {
+    // back me up.
+    echo 'Back up initiated' . "\n";
+    $backupClass->createBackup();
+} else {
+    echo 'No need to backup.' . "\n";
+}
+
+```
+
 How to run unit tests
 ---------------------
 From the root folder run:
