@@ -8,10 +8,12 @@
 
 require_once('settings.php');
 
+use Backup\Binary;
 use Backup\Tar;
 use Backup\IncrementalBackup;
 
-$tar = new Tar($path_to_backup, $path_to_save);
+$binary = new Binary('tar');
+$tar = new Tar($path_to_backup, $path_to_save, $binary);
 
 echo "Version: " . $tar->getVersion() . "\n";
 

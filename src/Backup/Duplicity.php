@@ -13,9 +13,6 @@ namespace Backup;
  */
 class Duplicity implements Command
 {
-    const DUPLICITY_CMD = 'duplicity';
-    const DUPLICITY_CMD_SUFIX = '2>/dev/null';
-
     /**
      * @var array options of duplicity command.
      */
@@ -63,9 +60,9 @@ class Duplicity implements Command
      */
     public function __construct($directory, $destination, Binary $binary)
     {
+        $this->_binary = $binary;
         $this->_setMainDirectory($directory);
         $this->_destination = $destination;
-        $this->_binary = $binary;
     }
 
     private function _setMainDirectory($directory)
@@ -94,7 +91,7 @@ class Duplicity implements Command
      */
     public function isInstalled()
     {
-        self::exec(self::DUPLICITY_CMD . ' -V', $output, $exitCode);
+        $exitCode = $this->_binary->run(' -V');
         if ($exitCode) {
             return false;
         }
@@ -110,8 +107,8 @@ class Duplicity implements Command
         if (isset(self::$_version)) {
             return self::$_version;
         }
-        self::exec(self::DUPLICITY_CMD . ' -V', $output, $exitCode);
-        $output = implode('', $output);
+        $this->_binary->run(' -V');
+        $output = implode('', $this->_binary->getOutput());
         return self::$_version = trim(str_replace('duplicity', '', $output));
     }
 
@@ -171,6 +168,8 @@ class Duplicity implements Command
             return self::NO_CHANGES;
         } elseif ($exitCode == 1) {
             return self::IS_CHANGED;
+        } elseif ($exitCode == 30) {
+            return self::NO_BACKUP_FOUND;
         }
         return self::CORRUPT_DATA;
     }
@@ -291,21 +290,5 @@ class Duplicity implements Command
     public function getOutput()
     {
         return $this->_output;
-    }
-
-    private static function _run($cmd_parameters, &$output, &$exitCode, $environment_vars = array())
-    {
-        $vars = '';
-        foreach ($environment_vars as $key => $value) {
-            $vars .= $key . '=' . $value . " ";
-        }
-        self::exec($vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX, $output,
-            $exitCode);
-        //echo $vars . self::DUPLICITY_CMD . ' ' . $cmd_parameters . ' ' . static::DUPLICITY_CMD_SUFIX . "\n";
-    }
-
-    private static function exec($command, &$output, &$exitCode)
-    {
-        exec($command, $output, $exitCode);
     }
 }

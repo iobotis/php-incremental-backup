@@ -9,7 +9,8 @@ namespace Backup;
 /**
  * Class Binary helps execute a binary setting environment variables and parameters to it.
  * eg. duplicity --no-encryption verify --compare-data file:///path/to/backup /destination 2>/dev/null
- * 
+ * This is used as an abstraction layer to execute a binary with parameters and environment variables.
+ *
  * @package Backup
  */
 class Binary
@@ -29,6 +30,11 @@ class Binary
      * @var string[]
      */
     private $_output;
+
+    /**
+     * @var string[]
+     */
+    private $_execution_list = array();
 
     /**
      * Binary constructor.
@@ -70,7 +76,9 @@ class Binary
 
     private function exec($command, &$output, &$exitCode)
     {
+        echo $command . "\n";
         exec($command, $output, $exitCode);
+        $this->_execution_list[] = $command;
     }
 
     /**
@@ -78,6 +86,11 @@ class Binary
      */
     public function getOutput()
     {
-        return$this->_output;
+        return $this->_output;
+    }
+
+    public function getExecutionList()
+    {
+        return $this->_execution_list;
     }
 }
