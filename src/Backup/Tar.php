@@ -276,7 +276,7 @@ class Tar implements Command
         if (empty($this->_excluded_directories)) {
             return '';
         } else {
-            return " --exclude=" . $this->getMainDirectoryBasename() . DIRECTORY_SEPARATOR .
+            return " --anchored --exclude=" . $this->getMainDirectoryBasename() . DIRECTORY_SEPARATOR .
             implode(
                 " --exclude=" . $this->getMainDirectoryBasename() . DIRECTORY_SEPARATOR,
                 $this->_excluded_directories
