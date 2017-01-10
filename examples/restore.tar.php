@@ -8,12 +8,15 @@
 
 require_once('settings.php');
 
-use Backup\Binary;
-use Backup\Tar;
+use Backup\CommandFactory;
 use Backup\IncrementalBackup;
 
-$binary = new Binary('tar');
-$tar = new Tar($path_to_backup, $path_to_save, $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'path_to_backup_at' => $path_to_save,
+);
+
+$tar = CommandFactory::create('Tar', $settings);
 
 echo "Version: " . $tar->getVersion() . "\n";
 
@@ -35,7 +38,7 @@ $handle = fopen("php://stdin", "r");
 $backup_to_restore = intval(fgets($handle));
 
 if (!in_array($backup_to_restore, range(1, $i - 1))) {
-    echo 'invalid backup selected.';
+    echo 'invalid backup selected.' . "\n";
     exit;
 }
 

@@ -10,16 +10,18 @@
 
 require_once('settings.php');
 
-use Backup\Binary;
-use Backup\Duplicity;
+use Backup\CommandFactory;
 use Backup\IncrementalBackup;
 
-$binary = new Binary('duplicity');
-$duplicity = new Duplicity($path_to_backup, $path_to_save, $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'path_to_backup_at' => $path_to_save,
+//    'passphrase' => 'abcdef',
+//    'exclude' => 'folder'
+);
 
+$duplicity = CommandFactory::create('Duplicity', $settings);
 echo "Version: " . $duplicity->getVersion() . "\n";
-
-//$backup->setPassPhrase( 'abcdef' );
 
 $backupClass = new IncrementalBackup ($duplicity);
 
