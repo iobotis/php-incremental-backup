@@ -3,7 +3,9 @@
   "description": "PHP library to support file incremental backups",
   "keywords": [
     "incremental",
-    "backup"
+    "backup",
+    "duplicity",
+    "tar"
   ],
   "homepage": "https://github.com/iobotis/php-incremental-backup",
   "type": "library",
@@ -11,6 +13,7 @@
   "authors": [
     {
       "name": "Ioannis Botis",
+      "email": "iobotis4@gmail.com",
       "role": "Developer"
     }
   ],
