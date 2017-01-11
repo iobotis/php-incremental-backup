@@ -1,0 +1,37 @@
+{
+  "name": "iobotis/php-incremental-backup",
+  "description": "PHP library to support file incremental backups",
+  "keywords": [
+    "incremental",
+    "backup"
+  ],
+  "homepage": "https://github.com/iobotis/php-incremental-backup",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Ioannis Botis",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": ">=5.4.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": ">=3.7.38"
+  },
+  "autoload": {
+    "psr-4": {
+      "Backup\\": "src/Backup/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Backup\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test" : "vendor/bin/phpunit",
+    "coverage" : "vendor/bin/phpunit  --coverage-text"
+  }
+}
