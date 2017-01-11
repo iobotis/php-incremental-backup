@@ -19,24 +19,27 @@ Requirements:
 Examples:
 ---------
 
-1)
+1) Simple Duplicity backup.
 ```php
-$backup = new Duplicity( '/path/to/backup', '/path/to/save' );
+use Backup\Binary;
+use Backup\Duplicity;
 
-if( $backup->verify()  != 0 ) {
-    // back me up.
-    echo 'Back up initiated' . "\n";
-    $backup->execute();
-}
-else {
-    echo 'No need to backup.' . "\n";
-}
+$binary = new Binary('/usr/bin/duplicity');
+$backup = new Duplicity( '/path/to/backup', '/path/to/save', $binary);
+
+$backup->execute();
+
 ```
-2)
+2) Simple Duplicity backup with wrapper class.
 ```php
-$backup = new Duplicity( '/path/to/backup', '/path/to/save' );
+use Backup\Binary;
+use Backup\Duplicity;
+use Backup\IncrementalBackup;
 
-$backupClass = new IncrementalBackup ( $backup );
+$binary = new Binary('duplicity');
+$backup = new Duplicity('/path/to/backup', '/path/to/save', $binary);
+
+$backupClass = new IncrementalBackup ($backup);
 
 $backups = $backupClass->getAllBackups();
 foreach ($backups as $time) {
@@ -52,27 +55,33 @@ else {
     echo 'No need to backup.' . "\n";
 }
 ```
-3)
+3) Simple Duplicity backup restore last backup.
 ```php
-$backup = new Duplicity( '/path/to/backup', '/path/to/save' );
+use Backup\Binary;
+use Backup\Duplicity;
 
-$backupClass = new IncrementalBackup ( $backup );
+$binary = new Binary('duplicity');
+$backup = new Duplicity('/path/to/backup', '/path/to/save', $binary);
+
+$backupClass = new IncrementalBackup ($backup);
 
 $backups = $backupClass->getAllBackups();
 
 // Restore last backup to this directory.
-$backupClass->restoreTo( end( $backups ), '/path/to/restore' );
+$backupClass->restoreTo(end( $backups ), '/path/to/restore');
 
 ```
 
-4)
+4) Simple Tar backup.
 ```php
+use Backup\Binary;
 use Backup\Tar;
 use Backup\IncrementalBackup;
 
-$backup = new Tar( '/path/to/backup', '/path/to/save' );
+$binary = new Binary('tar');
+$backup = new Tar('/path/to/backup', '/path/to/save', $binary);
 
-$backupClass = new IncrementalBackup ( $backup );
+$backupClass = new IncrementalBackup ($backup);
 
 $backups = $backupClass->getAllBackups();
 foreach ($backups as $time) {
@@ -90,9 +99,14 @@ else {
 
 ```
 
-5)
+5) Tar restore last backup.
 ```php
-$backup = new Tar( '/path/to/backup', '/path/to/save' );
+use Backup\Binary;
+use Backup\Tar;
+use Backup\IncrementalBackup;
+
+$binary = new Binary('tar');
+$backup = new Tar('/path/to/backup', '/path/to/save', $binary);
 
 $backupClass = new IncrementalBackup ( $backup );
 
@@ -103,7 +117,7 @@ $backupClass->restoreTo( end( $backups ), '/path/to/restore' );
 
 ```
 
-6)
+6) Using the Factory to generate a Duplicity backup.
 ```php
 use Backup\CommandFactory;
 use Backup\IncrementalBackup;
@@ -137,3 +151,6 @@ How to run unit tests
 ---------------------
 From the root folder run:
 php {location of phpunit phar}/phpunit.phar
+
+or
+Install composer dependencies and run the scripts defined in composer.json.
