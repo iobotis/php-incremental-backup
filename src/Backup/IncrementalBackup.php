@@ -1,6 +1,8 @@
 <?php
 namespace Backup;
 
+use Backup\Tools\Command;
+
 /**
  * @author Ioannis Botis
  * @date 23/9/2016
@@ -52,7 +54,7 @@ class IncrementalBackup
     {
         try {
             $exitCode = $this->_command->restore($time, $directory);
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return false;
         }
 

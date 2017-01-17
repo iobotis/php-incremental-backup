@@ -6,7 +6,9 @@
  * @since 4/1/2017
  */
 
-namespace Backup;
+namespace Backup\Tools;
+
+use Backup\Binary;
 
 /**
  * Class Tar

@@ -6,7 +6,7 @@
  * @since 28/12/2016
  */
 
-namespace Backup;
+namespace Backup\Tools;
 
 /**
  * Interface Command exposes the main function needed to create an incremental backup class.

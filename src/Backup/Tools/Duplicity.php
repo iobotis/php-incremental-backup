@@ -1,6 +1,8 @@
 <?php
 
-namespace Backup;
+namespace Backup\Tools;
+
+use Backup\Binary;
 
 /**
  * Class wrapper for duplicity command.

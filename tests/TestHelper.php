@@ -6,7 +6,7 @@
  * @since 02/01/2017
  */
 
-namespace Backup;
+namespace Backup\Tools;
 
 /**
  * Class TestHelper

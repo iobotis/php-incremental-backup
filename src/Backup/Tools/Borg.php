@@ -6,8 +6,9 @@
  * @since 17/1/2017
  */
 
-namespace Backup;
+namespace Backup\Tools;
 
+use Backup\Binary;
 
 class Borg implements Command
 {

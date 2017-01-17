@@ -9,7 +9,7 @@
 require_once('settings.php');
 
 use Backup\Binary;
-use Backup\Borg;
+use Backup\Tools\Borg;
 use Backup\IncrementalBackup;
 
 $settings = array(

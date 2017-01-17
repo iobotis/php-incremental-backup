@@ -9,9 +9,9 @@
 namespace Backup\tests;
 
 use Backup\Binary;
-use Backup\Command;
-use Backup\Duplicity;
-use Backup\TestHelper;
+use Backup\Tools\Command;
+use Backup\Tools\Duplicity;
+use Backup\Tools\TestHelper;
 
 class DuplicityTest extends \PHPUnit_Framework_TestCase
 {
