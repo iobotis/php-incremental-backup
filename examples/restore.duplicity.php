@@ -10,7 +10,7 @@
 
 require_once('settings.php');
 
-use Backup\CommandFactory;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
 $settings = array(
@@ -19,7 +19,7 @@ $settings = array(
 //    'passphrase' => 'abcdef'
 );
 
-$duplicity = CommandFactory::create('Duplicity', $settings);
+$duplicity = ToolFactory::create('Duplicity', $settings);
 
 echo "Version: " . $duplicity->getVersion() . "\n";
 

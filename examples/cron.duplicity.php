@@ -10,7 +10,7 @@
 
 require_once('settings.php');
 
-use Backup\CommandFactory;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
 $settings = array(
@@ -20,7 +20,7 @@ $settings = array(
 //    'exclude' => array('folder')
 );
 
-$duplicity = CommandFactory::create('Duplicity', $settings);
+$duplicity = ToolFactory::create('Duplicity', $settings);
 echo "Version: " . $duplicity->getVersion() . "\n";
 
 $backupClass = new IncrementalBackup ($duplicity);

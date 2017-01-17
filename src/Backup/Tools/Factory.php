@@ -6,7 +6,9 @@
  * @since 9/1/2017
  */
 
-namespace Backup;
+namespace Backup\Tools;
+
+use Backup\Binary;
 
 /**
  * Class CommandFactory
@@ -14,7 +16,7 @@ namespace Backup;
  *
  * @package Backup
  */
-class CommandFactory
+class Factory
 {
 
     /**

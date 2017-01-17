@@ -8,7 +8,7 @@
 
 require_once('settings.php');
 
-use Backup\CommandFactory;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
 $settings = array(
@@ -17,7 +17,7 @@ $settings = array(
 //    'exclude' => array('folder')
 );
 
-$tar = CommandFactory::create('Tar', $settings);
+$tar = ToolFactory::create('Tar', $settings);
 
 echo "Version: " . $tar->getVersion() . "\n";
 

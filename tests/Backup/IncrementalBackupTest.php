@@ -9,7 +9,7 @@
 namespace Backup\Tests;
 
 use Backup\IncrementalBackup;
-use Backup\Command;
+use Backup\Tools\Command;
 
 class IncrementalBackupTest extends \PHPUnit_Framework_TestCase
 {
@@ -28,7 +28,7 @@ class IncrementalBackupTest extends \PHPUnit_Framework_TestCase
      */
     public function setUp()
     {
-        $this->command = $this->getMockBuilder('Backup\Command')
+        $this->command = $this->getMockBuilder('Backup\Tools\Command')
             ->setMethods(array('verify', 'execute', 'getAllBackups', 'restore'))
             ->getMockForAbstractClass();
         $this->backup = new IncrementalBackup($this->command);
