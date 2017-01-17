@@ -25,9 +25,9 @@ $borg = new Borg($settings['path_to_backup'], $settings['path_to_backup_at'], $b
 
 echo "Version: " . $borg->getVersion() . "\n";
 
-$borg->verify();
+$backupClass = new IncrementalBackup ($borg);
 
-$backups = $borg->getAllBackups();
+$backups = $backupClass->getAllBackups();
 
 echo 'Backup #, time ' . "\n";
 $d = new \DateTime();
@@ -48,7 +48,7 @@ if (!in_array($backup_to_restore, range(1, $i - 1))) {
 }
 
 // Restore last backup to this directory.
-if ($borg->restore($backups[$backup_to_restore - 1], $path_to_restore) == 0) {
+if ($backupClass->restoreTo($backups[$backup_to_restore - 1], $path_to_restore)) {
     echo 'Directory restored.' . "\n";
 } else {
     echo 'Could not restore to directory.' . "\n";

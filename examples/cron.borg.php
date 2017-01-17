@@ -25,8 +25,11 @@ $borg = new Borg($settings['path_to_backup'], $settings['path_to_backup_at'], $b
 
 echo "Version: " . $borg->getVersion() . "\n";
 
-$borg->verify();
+$backupClass = new IncrementalBackup ($borg);
 
-$borg->execute();
+if($backupClass->isChanged()) {
+    $backupClass->createBackup();
+}
+
 
 
