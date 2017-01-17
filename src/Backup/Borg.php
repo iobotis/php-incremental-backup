@@ -72,7 +72,20 @@ class Borg implements Command
         if (!isset($this->_passphrase)) {
             $encryption = '--encryption=none ';
         }
-        $this->_binary->run(' init ' . $encryption . $this->_destination);
+        $this->_binary->run(' init ' . $encryption . $this->_destination, $this->getEnvironmentVars());
+    }
+
+    /**
+     * Set a passphrase to encrypt or decrypt the backup.
+     * 
+     * @param $passphrase
+     */
+    public function setPassPhrase($passphrase)
+    {
+        if (!is_string($passphrase)) {
+            throw new \Backup\Exception\InvalidArgumentException('Passphrase should be a string');
+        }
+        $this->_passphrase = $passphrase;
     }
 
     /**
@@ -101,7 +114,7 @@ class Borg implements Command
 
         $exitCode = $this->_binary->run(
             'check ' . $this->_destination,
-            array()
+            $this->getEnvironmentVars()
         );
 
         if ($exitCode == 0) {
@@ -190,7 +203,7 @@ class Borg implements Command
     {
         $vars = array();
         if (isset($this->_passphrase)) {
-            $vars['PASSPHRASE'] = $this->_passphrase;
+            $vars['BORG_PASSPHRASE'] = $this->_passphrase;
         }
         return $vars;
     }
