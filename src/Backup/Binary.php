@@ -56,19 +56,28 @@ class Binary
         $this->_path = $path;
     }
 
+    public function getPath()
+    {
+        return $this->_path;
+    }
+
     /**
      * Run binary with parameters.
      *
      * @param string $cmd_parameters
      * @param array $environment_vars
      */
-    public function run($cmd_parameters, $environment_vars = array())
+    public function run($cmd_parameters, $environment_vars = array(), $directory = null)
     {
         $vars = '';
         foreach ($environment_vars as $key => $value) {
             $vars .= $key . '=' . $value . " ";
         }
-        self::exec($vars . $this->_path . ' ' . $cmd_parameters . ' ' . $this->_command_suffix, $output,
+        $command = $vars . $this->_path . ' ' . $cmd_parameters . ' ' . $this->_command_suffix;
+        if($directory) {
+            $command = '(cd ' . $directory . ' && ' . $command . ")";
+        }
+        self::exec($command, $output,
             $exitCode);
         $this->_output = $output;
         return $exitCode;
@@ -76,6 +85,7 @@ class Binary
 
     private function exec($command, &$output, &$exitCode)
     {
+        echo $command . "\n";
         exec($command, $output, $exitCode);
         $this->_execution_list[] = $command;
     }
