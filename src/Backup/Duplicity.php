@@ -204,7 +204,7 @@ class Duplicity implements Command
         $backups = array();
         foreach ($this->_output as $line) {
             if (preg_match("/(Full|Incremental)[\s]+(.*)[\s]{10}/", $line, $results)) {
-                $backups[] = self::_getUnixTimestamp(trim($results[2]));;
+                $backups[] = self::_getUnixTimestamp(trim($results[2]));
             }
         }
         return $backups;
