@@ -23,6 +23,8 @@ $binary = new Binary('borg');
 
 $borg = new Borg($settings['path_to_backup'], $settings['path_to_backup_at'], $binary);
 
+$borg->setPassPhrase('abc');
+
 echo "Version: " . $borg->getVersion() . "\n";
 
 $backupClass = new IncrementalBackup ($borg);

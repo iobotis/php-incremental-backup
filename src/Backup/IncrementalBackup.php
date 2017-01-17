@@ -35,7 +35,7 @@ class IncrementalBackup
         } elseif ($status == Command::NO_BACKUP_FOUND) {
             return true;
         }
-        throw new \Backup\RuntimeException('Corrupt data');
+        throw new \Backup\Exception\RuntimeException('Corrupt data');
     }
 
     public function createBackup($full = false)
