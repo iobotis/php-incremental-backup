@@ -90,6 +90,19 @@ class Borg implements Command
     }
 
     /**
+     * Exclude subdirectories from backup.
+     * Multiple level paths supported eg. ["sudir1", "subdir2/dir"].
+     * Not full path, but relative paths.
+     * If a subdirectory does not exist, it will be ignored.
+     *
+     * @param array $subDirs an array of subdirectories to exclude.
+     */
+    public function setExludedSubDirectories(array $subDirs)
+    {
+        $this->_excluded_directories = $subDirs;
+    }
+
+    /**
      * Returns the version of duplicity.
      * @return string
      */
@@ -131,7 +144,7 @@ class Borg implements Command
             $this->initializeRepo();
         }
         $exitCode = $this->_binary->run(
-            'create ' .
+            'create ' . $this->_getExcludedPaths() .
             $this->_destination. '::' . time() . ' ' . $this->getMainDirectoryBasename(),
             $this->getEnvironmentVars(),
             $this->getMainDirectoryName()
@@ -211,11 +224,24 @@ class Borg implements Command
 
     protected function getMainDirectoryBasename()
     {
-        return basename($this->_main_directory);
+        return '.' . DIRECTORY_SEPARATOR;
     }
 
     protected function getMainDirectoryName()
     {
-        return dirname($this->_main_directory, 1);
+        return $this->_main_directory;
+    }
+
+    private function _getExcludedPaths()
+    {
+        if (empty($this->_excluded_directories)) {
+            return '';
+        } else {
+            return " -e '." . DIRECTORY_SEPARATOR .
+            implode(
+                "' -e '." . DIRECTORY_SEPARATOR,
+                $this->_excluded_directories
+            ) . "' ";
+        }
     }
 }

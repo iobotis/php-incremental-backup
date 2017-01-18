@@ -25,6 +25,8 @@ $borg = new Borg($settings['path_to_backup'], $settings['path_to_backup_at'], $b
 
 $borg->setPassPhrase('abc');
 
+$borg->setExludedSubDirectories(array('exclude', 'exclude1'));
+
 echo "Version: " . $borg->getVersion() . "\n";
 
 $backupClass = new IncrementalBackup ($borg);

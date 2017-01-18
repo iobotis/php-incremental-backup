@@ -166,7 +166,7 @@ class Tar implements Command
         $exitCode = $this->_binary->run(' --compare --file=' . $this->_destination . DIRECTORY_SEPARATOR .
             $this->getArchiveFilename($settings->number) . ' -C ' . $this->getMainDirectoryName() .
             ' ' . $this->_getExcludedPaths() .
-            ' ' . $this->getMainDirectoryBasename(),
+            ' .' . DIRECTORY_SEPARATOR,
             array()
         );
 
@@ -190,7 +190,7 @@ class Tar implements Command
             $this->getArchiveFilename($settings->number + 1) . ' -C ' . $this->getMainDirectoryName() .
             ' ' . $this->_getExcludedPaths() .
             ' -g ' . $this->_destination . DIRECTORY_SEPARATOR .
-            $this->getSnapshotFileName() . ' ' . $this->getMainDirectoryBasename(),
+            $this->getSnapshotFileName() . ' .' . DIRECTORY_SEPARATOR,
             array()
         );
 
@@ -265,7 +265,7 @@ class Tar implements Command
 
     protected function getMainDirectoryName()
     {
-        return dirname($this->_main_directory, 1);
+        return $this->_main_directory;
     }
 
     /**
@@ -278,9 +278,9 @@ class Tar implements Command
         if (empty($this->_excluded_directories)) {
             return '';
         } else {
-            return " --anchored --exclude=" . $this->getMainDirectoryBasename() . DIRECTORY_SEPARATOR .
+            return " --anchored --exclude=." . DIRECTORY_SEPARATOR .
             implode(
-                " --exclude=" . $this->getMainDirectoryBasename() . DIRECTORY_SEPARATOR,
+                " --exclude=." . DIRECTORY_SEPARATOR,
                 $this->_excluded_directories
             ) . ' ';
         }
