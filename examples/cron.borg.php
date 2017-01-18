@@ -8,24 +8,17 @@
 
 require_once('settings.php');
 
-use Backup\Binary;
-use Backup\Tools\Borg;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
 $settings = array(
     'path_to_backup' => $path_to_backup,
     'path_to_backup_at' => $path_to_save,
 //    'passphrase' => 'abcdef',
-//    'exclude' => array('folder')
+    'exclude' => array('exclude')
 );
 
-$binary = new Binary('borg');
-
-$borg = new Borg($settings['path_to_backup'], $settings['path_to_backup_at'], $binary);
-
-$borg->setPassPhrase('abc');
-
-$borg->setExludedSubDirectories(array('exclude', 'exclude1'));
+$borg = ToolFactory::create('Borg', $settings);
 
 echo "Version: " . $borg->getVersion() . "\n";
 
