@@ -24,7 +24,7 @@ class Factory
      *
      * @var string[]
      */
-    private static $_classes_supported = ['Duplicity', 'Tar'];
+    private static $_classes_supported = ['Duplicity', 'Tar', 'Borg'];
 
     /**
      * Provide the classname without namespace and settings to create an object that implements the Command interface.
@@ -87,6 +87,19 @@ class Factory
             }
 
             return $tar;
+        } elseif ($class === 'Borg') {
+            $binary = new Binary('borg');
+
+            if (empty($settings['path_to_backup']) || empty($settings['path_to_backup_at'])) {
+                throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
+            }
+            $borg = new Borg($settings['path_to_backup'], $settings['path_to_backup_at'], $binary);
+
+            if (!empty($settings['exclude']) && is_array($settings['exclude'])) {
+                $borg->setExludedSubDirectories($settings['exclude']);
+            }
+
+            return $borg;
         }
         throw new \Backup\Exception\InvalidArgumentException('Class not yet implemented!');
     }
