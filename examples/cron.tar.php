@@ -14,7 +14,7 @@ use Backup\IncrementalBackup;
 $settings = array(
     'path_to_backup' => $path_to_backup,
     'path_to_backup_at' => $path_to_save,
-//    'exclude' => array('folder')
+    //'exclude' => array('exclude', 'exclude1')
 );
 
 $tar = ToolFactory::create('Tar', $settings);
