@@ -8,6 +8,7 @@
 
 namespace Backup\Tests;
 
+use Backup\FileSystem\Folder;
 use Backup\IncrementalBackup;
 use Backup\Tools\Command;
 
@@ -100,11 +101,11 @@ class IncrementalBackupTest extends \PHPUnit_Framework_TestCase
 
     public function testRestoreTo()
     {
-        $this->command->expects( $this->once())
+        $this->command->expects($this->once())
             ->method('restore')
-            ->with(1111,'/restore/dir')
+            ->with(1111, new Folder('/restore/dir'))
             ->will($this->returnValue(0));
 
-        $this->assertTrue($this->backup->restoreTo(1111,'/restore/dir'));
+        $this->assertTrue($this->backup->restoreTo(1111, '/restore/dir'));
     }
 }

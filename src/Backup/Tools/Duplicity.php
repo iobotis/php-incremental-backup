@@ -34,7 +34,7 @@ class Duplicity implements Command
      */
     private $_passphrase;
     /**
-     * @var string the main directory to backup.
+     * @var \Backup\FileSystem\Source the main directory to backup.
      */
     private $_main_directory;
     /**
@@ -60,22 +60,17 @@ class Duplicity implements Command
      * @param string $destination the path to the directory to keep the backup files.
      * @param Binary $binary
      */
-    public function __construct($directory, $destination, Binary $binary)
-    {
+    public function __construct(
+        \Backup\FileSystem\Source $directory,
+        \Backup\FileSystem\Destination $destination,
+        Binary $binary
+    ) {
         $this->_binary = $binary;
-        $this->_setMainDirectory($directory);
-        $this->_destination = $destination;
-    }
-
-    private function _setMainDirectory($directory)
-    {
-        if (!$this->isInstalled()) {
-            throw new \Backup\Exception\BinaryNotFoundException('Duplicity not installed');
-        }
-        if (!$this->directoryExists($directory)) {
+        if (!$directory->exists()) {
             throw new \Backup\Exception\InvalidArgumentException('Directory path is invalid');
         }
         $this->_main_directory = $directory;
+        $this->_destination = $destination;
     }
 
     /**
@@ -159,8 +154,8 @@ class Duplicity implements Command
     {
         $exitCode = $this->_binary->run(
             $this->_getOptions() . $this->_getExcludedPaths() . ' verify ' .
-            ($compare_data ? '--compare-data file://' : '') . $this->_destination . ' ' .
-            $this->_main_directory,
+            ($compare_data ? '--compare-data file://' : '') . $this->_destination->getPath() . ' ' .
+            $this->_main_directory->getPath(),
             $this->getEnvironmentVars()
         );
 
@@ -180,7 +175,7 @@ class Duplicity implements Command
     {
         $exitCode = $this->_binary->run(
             $this->_getOptions() . $this->_getExcludedPaths() . ' ' .
-            ($full ? 'full ' : '') . $this->_main_directory . ' file://' . $this->_destination,
+            ($full ? 'full ' : '') . $this->_main_directory->getPath() . ' file://' . $this->_destination->getPath(),
             $this->getEnvironmentVars()
         );
         $this->_output = $this->_binary->getOutput();
@@ -190,7 +185,7 @@ class Duplicity implements Command
     protected function getCollectionStatus()
     {
         $exitCode = $this->_binary->run(
-            $this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination,
+            $this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination->getPath(),
             $this->getEnvironmentVars()
         );
         $this->_output = $this->_binary->getOutput();
@@ -218,16 +213,16 @@ class Duplicity implements Command
         return $d->getTimestamp();
     }
 
-    public function restore($time, $directory)
+    public function restore($time, \Backup\FileSystem\Folder $directory)
     {
         $d = new \DateTime();
         $d->setTimestamp($time);
         $time = $d->format(\DateTime::W3C);
 
-        if (!$this->directoryExists($directory)) {
+        if (!$directory->exists()) {
             throw new \Backup\Exception\InvalidArgumentException('Directory path is invalid');
         }
-        $is_empty = $this->isDirEmpty($directory);
+        $is_empty = $directory->isEmpty();
         if ($is_empty === null) {
             throw new \Backup\Exception\InvalidArgumentException('Directory path is not readable');
         }
@@ -235,8 +230,8 @@ class Duplicity implements Command
             throw new \Backup\Exception\InvalidArgumentException('Directory path should be empty');
         }
         $exitCode = $this->_binary->run(
-            $this->_getOptions() . $this->_getExcludedPaths() . ' restore file://' . $this->_destination . ' ' .
-            $directory . ' --time=' . $time,
+            $this->_getOptions() . $this->_getExcludedPaths() . ' restore file://' . $this->_destination->getPath() . ' ' .
+            $directory->getPath() . ' --time=' . $time,
             $this->getEnvironmentVars()
         );
         $this->_output = $this->_binary->getOutput();
@@ -273,21 +268,6 @@ class Duplicity implements Command
         $version = $this->getVersion();
         return version_compare($version, $since, '>=');
     }
-
-    protected function isDirEmpty($dir)
-    {
-        if (!is_readable($dir)) {
-            return null;
-        }
-        $handle = opendir($dir);
-        while (false !== ($entry = readdir($handle))) {
-            if ($entry != "." && $entry != "..") {
-                return false;
-            }
-        }
-        return true;
-    }
-
 
     public function getOutput()
     {

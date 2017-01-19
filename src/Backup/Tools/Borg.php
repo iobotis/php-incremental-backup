@@ -32,7 +32,7 @@ class Borg implements Command
      */
     private $_passphrase;
     /**
-     * @var string the main directory to backup.
+     * @var \Backup\FileSystem\Source the main directory to backup.
      */
     private $_main_directory;
     /**
@@ -57,8 +57,11 @@ class Borg implements Command
      * @param $destination
      * @param Binary $binary
      */
-    public function __construct($directory, $destination, Binary $binary)
-    {
+    public function __construct(
+        \Backup\FileSystem\Source $directory,
+        \Backup\FileSystem\Destination $destination,
+        Binary $binary
+    ) {
         $this->_binary = $binary;
         $this->_main_directory = $directory;
         $this->_destination = $destination;
@@ -78,7 +81,7 @@ class Borg implements Command
 
     /**
      * Set a passphrase to encrypt or decrypt the backup.
-     * 
+     *
      * @param $passphrase
      */
     public function setPassPhrase($passphrase)
@@ -118,11 +121,11 @@ class Borg implements Command
 
     public function verify()
     {
-        if (!is_readable($this->_destination)) {
+        if (!$this->_destination->isReadable()) {
             return self::CORRUPT_DATA;
         }
 
-        if($this->isDirEmpty($this->_destination)) {
+        if ($this->_destination->isEmpty()) {
             return self::NO_BACKUP_FOUND;
         }
 
@@ -135,20 +138,24 @@ class Borg implements Command
             return self::IS_CHANGED;
         }
 
+        $this->_output = $this->_binary->getOutput();
         return self::CORRUPT_DATA;
     }
 
     public function execute()
     {
-        if($this->isDirEmpty($this->_destination)) {
+        if ($this->_destination->isEmpty()) {
             $this->initializeRepo();
         }
         $exitCode = $this->_binary->run(
             'create ' . $this->_getExcludedPaths() .
-            $this->_destination. '::' . time() . ' ' . $this->getMainDirectoryBasename(),
+            $this->_destination . '::' . time() . ' .' . DIRECTORY_SEPARATOR,
             $this->getEnvironmentVars(),
-            $this->getMainDirectoryName()
+            $this->_main_directory->getPath()
         );
+        if ($exitCode) {
+            throw new \Backup\Exception\InvalidArgumentException('Backup destination should be empty or a valid borg repo');
+        }
         $this->_output = $this->_binary->getOutput();
         return $exitCode;
     }
@@ -174,13 +181,13 @@ class Borg implements Command
         return $backups;
     }
 
-    public function restore($time, $directory)
+    public function restore($time, \Backup\FileSystem\Folder $directory)
     {
         $exitCode = $this->_binary->run(
             'extract ' .
-            $this->_destination. '::' . $time,
+            $this->_destination . '::' . $time,
             $this->getEnvironmentVars(),
-            $directory
+            $directory->getPath()
         );
         $this->_output = $this->_binary->getOutput();
         return $exitCode;
@@ -222,16 +229,6 @@ class Borg implements Command
         return $vars;
     }
 
-    protected function getMainDirectoryBasename()
-    {
-        return '.' . DIRECTORY_SEPARATOR;
-    }
-
-    protected function getMainDirectoryName()
-    {
-        return $this->_main_directory;
-    }
-
     private function _getExcludedPaths()
     {
         if (empty($this->_excluded_directories)) {
@@ -243,5 +240,10 @@ class Borg implements Command
                 $this->_excluded_directories
             ) . "' ";
         }
+    }
+
+    public function getOutput()
+    {
+        return $this->_binary->getOutput();
     }
 }

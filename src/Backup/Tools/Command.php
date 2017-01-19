@@ -52,5 +52,12 @@ interface Command
      * @param string $directory the path of the duplicity files.
      * @return integer
      */
-    public function restore($time, $directory);
+    public function restore($time, \Backup\FileSystem\Folder  $directory);
+
+    /**
+     * Get the output from the last binary run.
+     * 
+     * @return string[]
+     */
+    public function getOutput();
 }

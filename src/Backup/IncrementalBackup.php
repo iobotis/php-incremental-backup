@@ -2,6 +2,7 @@
 namespace Backup;
 
 use Backup\Tools\Command;
+use Backup\FileSystem\Folder;
 
 /**
  * @author Ioannis Botis
@@ -37,7 +38,7 @@ class IncrementalBackup
         } elseif ($status == Command::NO_BACKUP_FOUND) {
             return true;
         }
-        throw new \Backup\Exception\RuntimeException('Corrupt data');
+        throw new \Backup\Exception\RuntimeException(implode('', $this->_command->getOutput()));
     }
 
     public function createBackup($full = false)
@@ -53,8 +54,9 @@ class IncrementalBackup
     public function restoreTo($time, $directory)
     {
         try {
-            $exitCode = $this->_command->restore($time, $directory);
+            $exitCode = $this->_command->restore($time, new Folder($directory));
         } catch (\Exception $e) {
+            echo $e->getMessage() . "\n";
             return false;
         }
 

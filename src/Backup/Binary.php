@@ -24,7 +24,7 @@ class Binary
     /**
      * @var string
      */
-    private $_command_suffix = '2>/dev/null';
+    private $_command_suffix = '2>&1';
 
     /**
      * @var string[]
@@ -85,7 +85,6 @@ class Binary
 
     private function exec($command, &$output, &$exitCode)
     {
-        echo $command . "\n";
         exec($command, $output, $exitCode);
         $this->_execution_list[] = $command;
     }
