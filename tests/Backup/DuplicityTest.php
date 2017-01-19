@@ -9,6 +9,9 @@
 namespace Backup\tests;
 
 use Backup\Binary;
+use Backup\FileSystem\Folder;
+use Backup\FileSystem\Source;
+use Backup\FileSystem\Destination;
 use Backup\Tools\Command;
 use Backup\Tools\Duplicity;
 use Backup\Tools\TestHelper;
@@ -211,15 +214,11 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
         $d->setTimestamp($unix_time);
         $time = $d->format(\DateTime::W3C);
 
-        $this->duplicity = $this->getDuplicityMock(array('getVersion', 'isDirEmpty'));
+        $this->duplicity = $this->getDuplicityMock(array('getVersion'));
         $this->duplicity
             ->expects($this->any())
             ->method('getVersion')
             ->will($this->returnValue('0.6'));
-        $this->duplicity
-            ->expects($this->once())
-            ->method('isDirEmpty')
-            ->will($this->returnValue(true));
         $this->binary
             ->expects($this->once())
             ->method('run')
@@ -235,7 +234,18 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getOutput')
             ->will($this->returnValue(''));
-        $this->duplicity->restore($unix_time, '/path/to/restore');
+        $folderMock = $this->getMockBuilder(Folder::class)
+            ->setMethods(array('exists', 'isEmpty'))
+            ->setConstructorArgs(array('/path/to/restore'))
+            ->getMock();
+        $folderMock->expects($this->any())
+            ->method('exists')
+            ->will($this->returnValue(true));
+        $folderMock->expects($this->any())
+            ->method('isEmpty')
+            ->will($this->returnValue(true));
+
+        $this->duplicity->restore($unix_time, $folderMock);
     }
 
     /**
@@ -244,13 +254,27 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
      */
     protected function getDuplicityMock($methods_to_mock)
     {
+        $sourceMock = $this->getMockBuilder(Source::class)
+            ->setMethods(array('exists'))
+            ->setConstructorArgs(array(self::PATH_TO_BACKUP))
+            ->getMock();
+        $sourceMock->expects($this->any())
+            ->method('exists')
+            ->will($this->returnValue(true));
+        $destinationMock = $this->getMockBuilder(Destination::class)
+            ->setMethods(array('exists'))
+            ->setConstructorArgs(array(self::DESTINATION_PATH))
+            ->getMock();
+        $destinationMock->expects($this->any())
+            ->method('exists')
+            ->will($this->returnValue(true));
         $this->binary = $this->getMockBuilder(Binary::class)
             ->setMethods(array('run', 'getOutput'))
             ->setConstructorArgs(array('duplicity'))
             ->getMock();
         return $this->getMockBuilder(Duplicity::class)
             ->setMethods($methods_to_mock)
-            ->setConstructorArgs(array(self::PATH_TO_BACKUP, self::DESTINATION_PATH, $this->binary))
+            ->setConstructorArgs(array($sourceMock, $destinationMock, $this->binary))
             //->disableOriginalConstructor()
             ->getMock();
     }

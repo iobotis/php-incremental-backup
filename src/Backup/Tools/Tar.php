@@ -23,7 +23,7 @@ class Tar implements Command
     const CMD_SUFIX = '2>/dev/null';
 
     /**
-     * @var string the main directory to backup.
+     * @var \Backup\FileSystem\Source the main directory to backup.
      */
     private $_main_directory;
     /**
@@ -31,6 +31,9 @@ class Tar implements Command
      */
     private $_excluded_directories;
 
+    /**
+     * @var \Backup\FileSystem\Destination
+     */
     private $_destination;
 
     /**
@@ -48,31 +51,17 @@ class Tar implements Command
      * @param string $directory the path to the directory to backup.
      * @param string $destination the path to the directory to keep the backup files.
      */
-    public function __construct($directory, $destination, Binary $binary)
-    {
-        $this->_binary = $binary;
-        $this->_setMainDirectory($directory);
-        $this->_destination = $destination;
-    }
-
-    private function _setMainDirectory($directory)
-    {
-        if (!$this->isInstalled()) {
-            throw new \Backup\Exception\BinaryNotFoundException('Tar is not installed');
-        }
-        if (!$this->directoryExists($directory)) {
+    public function __construct(
+        \Backup\FileSystem\Source $directory,
+        \Backup\FileSystem\Destination $destination,
+        Binary $binary
+    ) {
+        if (!$directory->exists()) {
             throw new \Backup\Exception\InvalidArgumentException('Tar backup path is invalid');
         }
+        $this->_binary = $binary;
         $this->_main_directory = $directory;
-    }
-
-    /**
-     * @param string $directory
-     * @return bool
-     */
-    protected function directoryExists($directory)
-    {
-        return is_dir($directory);
+        $this->_destination = $destination;
     }
 
     /**
@@ -115,7 +104,6 @@ class Tar implements Command
      * Multiple level paths supported eg. ["sudir1", "subdir2/dir"].
      * Not full path, but relative paths.
      * If a subdirectory does not exist, it will be ignored.
-     * @todo check if it only excludes folder relative to the root.
      *
      * @param array $subDirs an array of subdirectories to exclude.
      */
@@ -131,8 +119,9 @@ class Tar implements Command
      */
     public function getSettings()
     {
-        if (file_exists($this->_destination . DIRECTORY_SEPARATOR . $this->getSettingsFile())) {
-            return json_decode(file_get_contents($this->_destination . DIRECTORY_SEPARATOR . $this->getSettingsFile()));
+        $settings_file = $this->_destination->getPath() . DIRECTORY_SEPARATOR . $this->getSettingsFile();
+        if (file_exists($settings_file)) {
+            return json_decode(file_get_contents($settings_file));
         } // first time to backup.
         else {
             return (object)array(
@@ -149,12 +138,12 @@ class Tar implements Command
      */
     protected function getSettingsFile()
     {
-        return $this->getMainDirectoryBasename() . '.json';
+        return $this->_main_directory->getBasename() . '.json';
     }
 
     public function verify()
     {
-        if (!is_readable($this->_destination)) {
+        if (!$this->_destination->isReadable()) {
             return self::CORRUPT_DATA;
         }
 
@@ -163,8 +152,8 @@ class Tar implements Command
         if ($settings->number == 0) {
             return self::NO_BACKUP_FOUND;
         }
-        $exitCode = $this->_binary->run(' --compare --file=' . $this->_destination . DIRECTORY_SEPARATOR .
-            $this->getArchiveFilename($settings->number) . ' -C ' . $this->getMainDirectoryName() .
+        $exitCode = $this->_binary->run(' --compare --file=' . $this->_destination->getPath() . DIRECTORY_SEPARATOR .
+            $this->getArchiveFilename($settings->number) . ' -C ' . $this->_main_directory->getPath() .
             ' ' . $this->_getExcludedPaths() .
             ' .' . DIRECTORY_SEPARATOR,
             array()
@@ -186,10 +175,10 @@ class Tar implements Command
     {
         $settings = $this->getSettings();
         // Option -C goes before option -g.
-        $exitCode = $this->_binary->run(' cvf ' . $this->_destination . DIRECTORY_SEPARATOR .
-            $this->getArchiveFilename($settings->number + 1) . ' -C ' . $this->getMainDirectoryName() .
+        $exitCode = $this->_binary->run(' cvf ' . $this->_destination->getPath() . DIRECTORY_SEPARATOR .
+            $this->getArchiveFilename($settings->number + 1) . ' -C ' . $this->_main_directory->getPath() .
             ' ' . $this->_getExcludedPaths() .
-            ' -g ' . $this->_destination . DIRECTORY_SEPARATOR .
+            ' -g ' . $this->_destination->getPath() . DIRECTORY_SEPARATOR .
             $this->getSnapshotFileName() . ' .' . DIRECTORY_SEPARATOR,
             array()
         );
@@ -207,7 +196,7 @@ class Tar implements Command
         return $settings->backups;
     }
 
-    public function restore($time, $directory)
+    public function restore($time, \Backup\FileSystem\Folder $directory)
     {
         $settings = $this->getSettings();
 
@@ -215,9 +204,9 @@ class Tar implements Command
 
         for ($i = 1; $i <= $restore_till_here; $i++) {
             $exitCode = $this->_binary->run(
-                ' xvf ' . $this->_destination . DIRECTORY_SEPARATOR .
+                ' xvf ' . $this->_destination->getPath() . DIRECTORY_SEPARATOR .
                 $this->getArchiveFilename($i) . ' -g ' . '/dev/null' .
-                ' -C ' . $directory,
+                ' -C ' . $directory->getPath(),
                 array()
             );
 
@@ -234,7 +223,7 @@ class Tar implements Command
         $settings = $this->getSettings();
         $settings->number++;
         $settings->backups[] = time();
-        file_put_contents($this->_destination . DIRECTORY_SEPARATOR . $this->getSettingsFile(), json_encode($settings));
+        file_put_contents($this->_destination->getPath() . DIRECTORY_SEPARATOR . $this->getSettingsFile(), json_encode($settings));
     }
 
     /**
@@ -244,7 +233,7 @@ class Tar implements Command
      */
     protected function getSnapshotFileName()
     {
-        return $this->getMainDirectoryBasename() . '.snar';
+        return $this->_main_directory->getBasename() . '.snar';
     }
 
     /**
@@ -255,21 +244,10 @@ class Tar implements Command
      */
     protected function getArchiveFilename($archive_number = 1)
     {
-        return $this->getMainDirectoryBasename() . '.' . $archive_number . '.tar';
-    }
-
-    protected function getMainDirectoryBasename()
-    {
-        return basename($this->_main_directory);
-    }
-
-    protected function getMainDirectoryName()
-    {
-        return $this->_main_directory;
+        return $this->_main_directory->getBasename() . '.' . $archive_number . '.tar';
     }
 
     /**
-     * @todo Fix file patterns to use relative path.
      *
      * @return string
      */
@@ -284,5 +262,10 @@ class Tar implements Command
                 $this->_excluded_directories
             ) . ' ';
         }
+    }
+
+    public function getOutput()
+    {
+        return $this->_output;
     }
 }

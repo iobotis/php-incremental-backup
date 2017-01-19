@@ -9,6 +9,8 @@
 namespace Backup\Tools;
 
 use Backup\Binary;
+use Backup\FileSystem\Source;
+use Backup\FileSystem\Destination;
 
 /**
  * Class CommandFactory
@@ -63,7 +65,11 @@ class Factory
             if (empty($settings['path_to_backup']) || empty($settings['path_to_backup_at'])) {
                 throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
             }
-            $duplicity = new Duplicity($settings['path_to_backup'], $settings['path_to_backup_at'], $binary);
+            $duplicity = new Duplicity(
+                new Source($settings['path_to_backup']),
+                new Destination($settings['path_to_backup_at']),
+                $binary
+            );
 
             if (!empty($settings['passphrase']) && is_string($settings['passphrase'])) {
                 $duplicity->setPassPhrase($settings['passphrase']);
@@ -80,7 +86,11 @@ class Factory
             if (empty($settings['path_to_backup']) || empty($settings['path_to_backup_at'])) {
                 throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
             }
-            $tar = new Tar($settings['path_to_backup'], $settings['path_to_backup_at'], $binary);
+            $tar = new Tar(
+                new Source($settings['path_to_backup']),
+                new Destination($settings['path_to_backup_at']),
+                $binary
+            );
 
             if (!empty($settings['exclude']) && is_array($settings['exclude'])) {
                 $tar->setExludedSubDirectories($settings['exclude']);
@@ -93,7 +103,11 @@ class Factory
             if (empty($settings['path_to_backup']) || empty($settings['path_to_backup_at'])) {
                 throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
             }
-            $borg = new Borg($settings['path_to_backup'], $settings['path_to_backup_at'], $binary);
+            $borg = new Borg(
+                new Source($settings['path_to_backup']),
+                new Destination($settings['path_to_backup_at']),
+                $binary
+            );
 
             if (!empty($settings['exclude']) && is_array($settings['exclude'])) {
                 $borg->setExludedSubDirectories($settings['exclude']);
