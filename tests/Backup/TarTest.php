@@ -1,9 +1,9 @@
 <?php
 /**
  * @author Ioannis Botis
- * @date 02/01/2017
- * @version: DuplicityTest.php 7:43 pm
- * @since 02/01/2017
+ * @date 19/1/2017
+ * @version: TarTest.php 7:56 μμ
+ * @since 19/1/2017
  */
 
 namespace Backup\tests;
@@ -13,17 +13,16 @@ use Backup\FileSystem\Folder;
 use Backup\FileSystem\Source;
 use Backup\FileSystem\Destination;
 use Backup\Tools\Command;
-use Backup\Tools\Duplicity;
+use Backup\Tools\Tar;
 
-class DuplicityTest extends \PHPUnit_Framework_TestCase
+class TarTest extends \PHPUnit_Framework_TestCase
 {
-
     const PATH_TO_BACKUP = '/path/to/backup';
     const DESTINATION_PATH = '/path/destination';
     /**
      * @var Duplicity
      */
-    protected $duplicity;
+    protected $tar;
 
     /**
      * @var Binary
@@ -37,7 +36,7 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
 
     public function tearDown()
     {
-        $this->duplicity = null;
+        $this->tar = null;
         parent::tearDown();
     }
 
@@ -46,7 +45,7 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
      */
     public function testIsInstalled()
     {
-        $this->duplicity = $this->getDuplicityMock(null);
+        $this->tar = $this->getTarMock(null);
 
         $this->binary
             ->expects($this->any())
@@ -55,17 +54,14 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
         $this->binary
             ->expects($this->any())
             ->method('getOutput')
-            ->will($this->returnValue(array('duplicity 0.7.06')));
+            ->will($this->returnValue(array('tar 1.2')));
 
-        $this->assertTrue($this->duplicity->isInstalled());
+        $this->assertTrue($this->tar->isInstalled());
     }
 
-    /**
-     *
-     */
     public function testGetVersion()
     {
-        $this->duplicity = $this->getDuplicityMock(null);
+        $this->tar = $this->getTarMock(null);
         $this->binary
             ->expects($this->once())
             ->method('run')
@@ -73,10 +69,10 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
         $this->binary
             ->expects($this->once())
             ->method('getOutput')
-            ->will($this->returnValue(array('duplicity 0.7.06')));;
+            ->will($this->returnValue(array('tar 1.2')));;
 
         // check that the last command was
-        $this->assertEquals('0.7.06', $this->duplicity->getVersion());
+        $this->assertEquals('1.2', $this->tar->getVersion());
     }
 
     /**
@@ -84,23 +80,28 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
      */
     public function testVerify()
     {
-        $this->duplicity = $this->getDuplicityMock(array('getVersion'));
-        $this->duplicity
+        $this->tar = $this->getTarMock(array('getVersion', 'getSettings'));
+        $this->tar
             ->expects($this->any())
             ->method('getVersion')
-            ->will($this->returnValue('0.6'));
+            ->will($this->returnValue('1.2'));
+
+        $this->tar
+            ->expects($this->any())
+            ->method('getSettings')
+            ->will($this->returnValue((object)array("number" => 1)));
 
         $this->binary
             ->expects($this->once())
             ->method('run')
-            ->with($this->stringStartsWith('--no-encryption verify --compare-data file://'), $this->equalTo(array()))
+            ->with($this->stringStartsWith(' --compare --file='), $this->equalTo(array()))
             ->will($this->returnValue(0));
         $this->binary
-            ->expects($this->once())
+            ->expects($this->any())
             ->method('getOutput')
             ->will($this->returnValue(array('')));
 
-        $this->assertEquals(Command::NO_CHANGES, $this->duplicity->verify());
+        $this->assertEquals(Command::NO_CHANGES, $this->tar->verify());
     }
 
     /**
@@ -108,22 +109,31 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
      */
     public function testExecute()
     {
-        $this->duplicity = $this->getDuplicityMock(array('getVersion'));
-        $this->duplicity
+        $this->tar = $this->getTarMock(array('getVersion', 'getSettings', 'saveSettings'));
+        $this->tar
             ->expects($this->any())
             ->method('getVersion')
-            ->will($this->returnValue('0.6'));
+            ->will($this->returnValue('1.2'));
+
+        $this->tar
+            ->expects($this->any())
+            ->method('getSettings')
+            ->will($this->returnValue((object)array("number" => 1)));
+        $this->tar
+            ->expects($this->any())
+            ->method('saveSettings')
+            ->will($this->returnValue(true));
         $this->binary
             ->expects($this->once())
             ->method('run')
-            ->with($this->stringStartsWith('--no-encryption ' . self::PATH_TO_BACKUP), $this->equalTo(array()))
+            ->with($this->stringStartsWith(' cvf'), $this->equalTo(array()))
             ->will($this->returnValue(0));
         $this->binary
             ->expects($this->once())
             ->method('getOutput')
             ->will($this->returnValue(array('')));
 
-        $this->assertEquals(0, $this->duplicity->execute());
+        $this->assertEquals(0, $this->tar->execute());
     }
 
     /**
@@ -133,12 +143,32 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetPassPhrase()
     {
-        $this->duplicity = $this->getDuplicityMock(array('getVersion'));
-        $this->duplicity
+        $this->markTestSkipped("Passphrase not yet implemented!");
+        $this->tar = $this->getTarMock(array('getVersion', 'getSettings', 'saveSettings'));
+        $this->tar
             ->expects($this->any())
             ->method('getVersion')
-            ->will($this->returnValue('0.6'));
-        $this->duplicity->setPassPhrase('abc');
+            ->will($this->returnValue('1.2'));
+
+        $this->tar
+            ->expects($this->any())
+            ->method('getSettings')
+            ->will($this->returnValue((object)array("number" => 1)));
+        $this->tar
+            ->expects($this->any())
+            ->method('saveSettings')
+            ->will($this->returnValue(true));
+        $this->binary
+            ->expects($this->once())
+            ->method('run')
+            ->with($this->stringStartsWith(' cvf'), $this->equalTo(array()))
+            ->will($this->returnValue(0));
+        $this->binary
+            ->expects($this->once())
+            ->method('getOutput')
+            ->will($this->returnValue(array('')));
+
+        $this->tar->setPassPhrase('abc');
         $this->binary
             ->expects($this->once())
             ->method('run')
@@ -149,36 +179,35 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getOutput')
             ->will($this->returnValue(array('')));
-        $this->duplicity->execute();
+        $this->tar->execute();
 
     }
 
     /**
-     * @group 1
-     * @dataProvider getCmdCollectionOutput
-     * @param $cmd_output
-     * @param $unix_timestamps
+     *
      */
-    public function testGetAllBackups($cmd_output, $unix_timestamps)
+    public function testGetAllBackups()
     {
-        $this->duplicity = $this->getDuplicityMock(array('getVersion'));
-        $this->duplicity
+        $expected = array(1,2,3,4);
+        $this->tar = $this->getTarMock(array('getVersion', 'getSettings', 'saveSettings'));
+        $this->tar
             ->expects($this->any())
             ->method('getVersion')
-            ->will($this->returnValue('0.6'));
-        $this->binary
-            ->expects($this->once())
-            ->method('run')
-            ->with($this->stringStartsWith('--no-encryption collection-status'), $this->equalTo(array()))
-            ->will($this->returnValue(0));
-        $this->binary
-            ->expects($this->once())
-            ->method('getOutput')
-            ->will($this->returnValue($cmd_output));
-        $backups = $this->duplicity->getAllBackups();
+            ->will($this->returnValue('1.2'));
+
+        $this->tar
+            ->expects($this->any())
+            ->method('getSettings')
+            ->will($this->returnValue((object)array("number" => 1, "backups" => $expected)));
+        $this->tar
+            ->expects($this->any())
+            ->method('saveSettings')
+            ->will($this->returnValue(true));
+
+        $backups = $this->tar->getAllBackups();
 
         // check that the backup timestamps were found from the command output.
-        $this->assertEquals($backups, $unix_timestamps);
+        $this->assertEquals($backups, $expected);
     }
 
     /**
@@ -186,23 +215,31 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
      */
     public function testSetExludedSubDirectories()
     {
-        $this->duplicity = $this->getDuplicityMock(array('getVersion'));
-        $this->duplicity
+        $expected = array(1,2,3,4);
+        $this->tar = $this->getTarMock(array('getVersion', 'getSettings', 'saveSettings'));
+        $this->tar
             ->expects($this->any())
             ->method('getVersion')
-            ->will($this->returnValue('0.6'));
+            ->will($this->returnValue('1.2'));
+
+        $this->tar
+            ->expects($this->any())
+            ->method('getSettings')
+            ->will($this->returnValue((object)array("number" => 1, "backups" => $expected)));
+        $this->tar
+            ->expects($this->any())
+            ->method('saveSettings')
+            ->will($this->returnValue(true));
+
         $this->binary
             ->expects($this->once())
             ->method('run')
-            ->with($this->stringContains('--exclude **dir1 --exclude **dir2'), $this->equalTo(array()))
+            ->with($this->stringContains('--exclude=./dir1 --exclude=./dir2'), $this->equalTo(array()))
             ->will($this->returnValue(0));
-        $this->binary
-            ->expects($this->once())
-            ->method('getOutput')
-            ->will($this->returnValue(''));
-        $this->duplicity->setExludedSubDirectories(array('dir1', 'dir2'));
 
-        $this->assertEquals(0, $this->duplicity->execute());
+        $this->tar->setExludedSubDirectories(array('dir1', 'dir2'));
+
+        $this->assertEquals(0, $this->tar->execute());
     }
 
     public function testRestore()
@@ -212,18 +249,25 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
         $d->setTimestamp($unix_time);
         $time = $d->format(\DateTime::W3C);
 
-        $this->duplicity = $this->getDuplicityMock(array('getVersion'));
-        $this->duplicity
+        $expected = array(1,2,3,4);
+        $this->tar = $this->getTarMock(array('getVersion', 'getSettings', 'saveSettings'));
+        $this->tar
             ->expects($this->any())
             ->method('getVersion')
-            ->will($this->returnValue('0.6'));
+            ->will($this->returnValue('1.2'));
+
+        $this->tar
+            ->expects($this->any())
+            ->method('getSettings')
+            ->will($this->returnValue((object)array("number" => 1, "backups" => $expected)));
+
         $this->binary
             ->expects($this->once())
             ->method('run')
             ->with(
                 $this->logicalAnd(
-                    $this->stringContains('--no-encryption restore'),
-                    $this->stringContains('--time=' . $time)
+                    $this->stringContains('xvf '),
+                    $this->stringContains('-g /dev/null')
                 ),
                 $this->equalTo(array())
             )
@@ -243,14 +287,14 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
             ->method('isEmpty')
             ->will($this->returnValue(true));
 
-        $this->duplicity->restore($unix_time, $folderMock);
+        $this->tar->restore($unix_time, $folderMock);
     }
 
     /**
      * @param $methods_to_mock
      * @return mixed
      */
-    protected function getDuplicityMock($methods_to_mock)
+    protected function getTarMock($methods_to_mock)
     {
         $sourceMock = $this->getMockBuilder(Source::class)
             ->setMethods(array('exists'))
@@ -260,42 +304,23 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
             ->method('exists')
             ->will($this->returnValue(true));
         $destinationMock = $this->getMockBuilder(Destination::class)
-            ->setMethods(array('exists'))
+            ->setMethods(array('exists', 'isReadable'))
             ->setConstructorArgs(array(self::DESTINATION_PATH))
             ->getMock();
         $destinationMock->expects($this->any())
             ->method('exists')
             ->will($this->returnValue(true));
+        $destinationMock->expects($this->any())
+            ->method('isReadable')
+            ->will($this->returnValue(true));
         $this->binary = $this->getMockBuilder(Binary::class)
             ->setMethods(array('run', 'getOutput'))
             ->setConstructorArgs(array('duplicity'))
             ->getMock();
-        return $this->getMockBuilder(Duplicity::class)
+        return $this->getMockBuilder(Tar::class)
             ->setMethods($methods_to_mock)
             ->setConstructorArgs(array($sourceMock, $destinationMock, $this->binary))
             //->disableOriginalConstructor()
             ->getMock();
-    }
-
-    public function getCmdCollectionOutput()
-    {
-        $unix_timestamps = [time() - 60 * 60 * 24 * 5, time() - 60 * 60 * 24 * 4];
-        return [
-            [
-                [
-                    'Chain start time: Tue Jan 10 10:35:19 2017',
-                    'Chain end time: Tue Jan 10 12:21:55 2017',
-                    'Number of contained backup sets: 2',
-                    'Total number of contained volumes: 2',
-                    'Type of backup set:                            Time:      Num volumes:',
-                    'Full         ' . date("D M j G:i:s Y", $unix_timestamps[0]) . '                 1',
-                    'Incremental         ' . date("D M j G:i:s Y", $unix_timestamps[1]) . '                 1'
-                ],
-                [
-                    $unix_timestamps[0],
-                    $unix_timestamps[1]
-                ]
-            ]
-        ];
     }
 }
