@@ -62,7 +62,7 @@ class Duplicity implements Command
      */
     public function __construct(
         \Backup\FileSystem\Source $directory,
-        \Backup\FileSystem\Destination $destination,
+        \Backup\Destination\Base $destination,
         Binary $binary
     ) {
         $this->_binary = $binary;
@@ -267,6 +267,13 @@ class Duplicity implements Command
     {
         $version = $this->getVersion();
         return version_compare($version, $since, '>=');
+    }
+
+    private function _getDestinationForBinary()
+    {
+        if($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
+            return 'file://' . $this->_destination->getPath();
+        }
     }
 
     public function getOutput()
