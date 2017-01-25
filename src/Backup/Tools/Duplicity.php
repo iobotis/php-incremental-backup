@@ -152,11 +152,21 @@ class Duplicity implements Command
      */
     public function verify($compare_data = true)
     {
+        $env_vars = $this->getEnvironmentVars();
+        $destination = '';
+        if($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
+            $destination = 'file://' . $this->_destination->getPath();
+        } elseif($this->_destination->getType() === \Backup\Destination\Base::FTP_TYPE) {
+            $settings =  $this->_destination->getSettings();
+            $env_vars['FTP_PASSWORD'] = $settings['password'];
+            $destination = 'ftp://' . $settings['username'] . '@' . $settings['host'] . $this->_destination->getPath();
+        }
+
         $exitCode = $this->_binary->run(
             $this->_getOptions() . $this->_getExcludedPaths() . ' verify ' .
-            ($compare_data ? '--compare-data file://' : '') . $this->_destination->getPath() . ' ' .
+            ($compare_data ? '--compare-data ' : '') . $destination . ' ' .
             $this->_main_directory->getPath(),
-            $this->getEnvironmentVars()
+            $env_vars
         );
 
         $this->_output = $this->_binary->getOutput();
@@ -173,10 +183,20 @@ class Duplicity implements Command
 
     public function execute($full = false)
     {
+        $env_vars = $this->getEnvironmentVars();
+        $destination = '';
+        if($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
+            $destination = 'file://' . $this->_destination->getPath();
+        } elseif($this->_destination->getType() === \Backup\Destination\Base::FTP_TYPE) {
+            $settings =  $this->_destination->getSettings();
+            $env_vars['FTP_PASSWORD'] = $settings['password'];
+            $destination = 'ftp://' . $settings['username'] . '@' . $settings['host'] . $this->_destination->getPath();
+        }
+
         $exitCode = $this->_binary->run(
             $this->_getOptions() . $this->_getExcludedPaths() . ' ' .
-            ($full ? 'full ' : '') . $this->_main_directory->getPath() . ' file://' . $this->_destination->getPath(),
-            $this->getEnvironmentVars()
+            ($full ? 'full ' : '') . $this->_main_directory->getPath() . ' ' . $destination,
+            $env_vars
         );
         $this->_output = $this->_binary->getOutput();
         return $exitCode;
@@ -184,9 +204,19 @@ class Duplicity implements Command
 
     protected function getCollectionStatus()
     {
+        $env_vars = $this->getEnvironmentVars();
+        $destination = '';
+        if($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
+            $destination = 'file://' . $this->_destination->getPath();
+        } elseif($this->_destination->getType() === \Backup\Destination\Base::FTP_TYPE) {
+            $settings =  $this->_destination->getSettings();
+            $env_vars['FTP_PASSWORD'] = $settings['password'];
+            $destination = 'ftp://' . $settings['username'] . '@' . $settings['host'] . $this->_destination->getPath();
+        }
+
         $exitCode = $this->_binary->run(
-            $this->_getOptions() . $this->_getExcludedPaths() . ' collection-status file://' . $this->_destination->getPath(),
-            $this->getEnvironmentVars()
+            $this->_getOptions() . $this->_getExcludedPaths() . ' collection-status ' . $destination,
+            $env_vars
         );
         $this->_output = $this->_binary->getOutput();
         return $exitCode;
@@ -229,10 +259,20 @@ class Duplicity implements Command
         if ($is_empty === false) {
             throw new \Backup\Exception\InvalidArgumentException('Directory path should be empty');
         }
+        $env_vars = $this->getEnvironmentVars();
+        $destination = '';
+        if($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
+            $destination = 'file://' . $this->_destination->getPath();
+        } elseif($this->_destination->getType() === \Backup\Destination\Base::FTP_TYPE) {
+            $settings =  $this->_destination->getSettings();
+            $env_vars['FTP_PASSWORD'] = $settings['password'];
+            $destination = 'ftp://' . $settings['username'] . '@' . $settings['host'] . $this->_destination->getPath();
+        }
+
         $exitCode = $this->_binary->run(
-            $this->_getOptions() . $this->_getExcludedPaths() . ' restore file://' . $this->_destination->getPath() . ' ' .
+            $this->_getOptions() . $this->_getExcludedPaths() . ' restore ' . $destination . ' ' .
             $directory->getPath() . ' --time=' . $time,
-            $this->getEnvironmentVars()
+            $env_vars
         );
         $this->_output = $this->_binary->getOutput();
         return $exitCode;

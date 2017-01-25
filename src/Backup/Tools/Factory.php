@@ -11,6 +11,7 @@ namespace Backup\Tools;
 use Backup\Binary;
 use Backup\FileSystem\Source;
 use Backup\Destination\Local;
+use Backup\Destination\Ftp;
 
 /**
  * Class CommandFactory
@@ -62,12 +63,12 @@ class Factory
         if ($class === 'Duplicity') {
             $binary = new Binary('duplicity');
 
-            if (empty($settings['path_to_backup']) || empty($settings['path_to_backup_at'])) {
+            if (empty($settings['path_to_backup']) || empty($settings['destination'])) {
                 throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
             }
             $duplicity = new Duplicity(
                 new Source($settings['path_to_backup']),
-                new Local(array('path' => $settings['path_to_backup_at'])),
+                self::getDestination($settings['destination']),
                 $binary
             );
 
@@ -116,5 +117,16 @@ class Factory
             return $borg;
         }
         throw new \Backup\Exception\InvalidArgumentException('Class not yet implemented!');
+    }
+
+    protected static function getDestination($settings)
+    {
+        if ($settings['type'] == 'local') {
+            return new Local(array('path' => $settings['path']));
+        } elseif ($settings['type'] == 'ftp') {
+            return new Ftp($settings);
+        }
+
+        throw new \Backup\Exception\InvalidArgumentException('type not supported.');
     }
 }
