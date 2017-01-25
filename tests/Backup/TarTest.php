@@ -11,7 +11,7 @@ namespace Backup\tests;
 use Backup\Binary;
 use Backup\FileSystem\Folder;
 use Backup\FileSystem\Source;
-use Backup\FileSystem\Destination;
+use Backup\Destination\Local;
 use Backup\Tools\Command;
 use Backup\Tools\Tar;
 
@@ -303,15 +303,15 @@ class TarTest extends \PHPUnit_Framework_TestCase
         $sourceMock->expects($this->any())
             ->method('exists')
             ->will($this->returnValue(true));
-        $destinationMock = $this->getMockBuilder(Destination::class)
-            ->setMethods(array('exists', 'isReadable'))
-            ->setConstructorArgs(array(self::DESTINATION_PATH))
+        $destinationMock = $this->getMockBuilder(Local::class)
+            ->setMethods(array('exists', 'canAccess'))
+            ->setConstructorArgs(array(array('path' => self::DESTINATION_PATH)))
             ->getMock();
         $destinationMock->expects($this->any())
             ->method('exists')
             ->will($this->returnValue(true));
         $destinationMock->expects($this->any())
-            ->method('isReadable')
+            ->method('canAccess')
             ->will($this->returnValue(true));
         $this->binary = $this->getMockBuilder(Binary::class)
             ->setMethods(array('run', 'getOutput'))

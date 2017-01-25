@@ -53,7 +53,7 @@ class Tar implements Command
      */
     public function __construct(
         \Backup\FileSystem\Source $directory,
-        \Backup\FileSystem\Destination $destination,
+        \Backup\Destination\Base $destination,
         Binary $binary
     ) {
         if (!$directory->exists()) {
@@ -143,7 +143,7 @@ class Tar implements Command
 
     public function verify()
     {
-        if (!$this->_destination->isReadable()) {
+        if (!$this->_destination->canAccess()) {
             return self::CORRUPT_DATA;
         }
 
@@ -223,7 +223,8 @@ class Tar implements Command
         $settings = $this->getSettings();
         $settings->number++;
         $settings->backups[] = time();
-        file_put_contents($this->_destination->getPath() . DIRECTORY_SEPARATOR . $this->getSettingsFile(), json_encode($settings));
+        file_put_contents($this->_destination->getPath() . DIRECTORY_SEPARATOR . $this->getSettingsFile(),
+            json_encode($settings));
     }
 
     /**

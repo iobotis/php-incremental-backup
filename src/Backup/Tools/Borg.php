@@ -59,7 +59,7 @@ class Borg implements Command
      */
     public function __construct(
         \Backup\FileSystem\Source $directory,
-        \Backup\FileSystem\Destination $destination,
+        \Backup\Destination\Base $destination,
         Binary $binary
     ) {
         $this->_binary = $binary;
@@ -76,7 +76,7 @@ class Borg implements Command
         if (!isset($this->_passphrase)) {
             $encryption = '--encryption=none ';
         }
-        $this->_binary->run(' init ' . $encryption . $this->_destination, $this->getEnvironmentVars());
+        $this->_binary->run(' init ' . $encryption . $this->_destination->getPath(), $this->getEnvironmentVars());
     }
 
     /**
@@ -121,7 +121,7 @@ class Borg implements Command
 
     public function verify()
     {
-        if (!$this->_destination->isReadable()) {
+        if (!$this->_destination->canAccess()) {
             return self::CORRUPT_DATA;
         }
 
@@ -130,7 +130,7 @@ class Borg implements Command
         }
 
         $exitCode = $this->_binary->run(
-            'check ' . $this->_destination,
+            'check ' . $this->_destination->getPath(),
             $this->getEnvironmentVars()
         );
 

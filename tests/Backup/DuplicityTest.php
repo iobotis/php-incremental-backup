@@ -11,7 +11,7 @@ namespace Backup\tests;
 use Backup\Binary;
 use Backup\FileSystem\Folder;
 use Backup\FileSystem\Source;
-use Backup\FileSystem\Destination;
+use Backup\Destination\Local;
 use Backup\Tools\Command;
 use Backup\Tools\Duplicity;
 
@@ -259,9 +259,9 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
         $sourceMock->expects($this->any())
             ->method('exists')
             ->will($this->returnValue(true));
-        $destinationMock = $this->getMockBuilder(Destination::class)
+        $destinationMock = $this->getMockBuilder(Local::class)
             ->setMethods(array('exists'))
-            ->setConstructorArgs(array(self::DESTINATION_PATH))
+            ->setConstructorArgs(array(array('path' => self::DESTINATION_PATH)))
             ->getMock();
         $destinationMock->expects($this->any())
             ->method('exists')
