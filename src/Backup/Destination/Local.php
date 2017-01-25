@@ -10,21 +10,16 @@ namespace Backup\Destination;
 
 use Backup\Destination\AbstractBase;
 
-use League\Flysystem\Filesystem;
-use League\Flysystem\Adapter\Local as LocalAdapter;
+use Backup\FileSystem\Folder;
 
 class Local extends AbstractBase
 {
-    private $path;
-    protected $adapter;
-    protected $filesystem;
+    protected $folder;
 
     public function __construct(array $settings)
     {
         parent::__construct($settings);
-        $this->path = $settings['path'];
-        $this->adapter = new LocalAdapter($settings['path']);
-        $this->filesystem = new Filesystem($this->adapter);
+        $this->folder = new Folder($settings['path']);
     }
 
     public function getType()
@@ -34,11 +29,21 @@ class Local extends AbstractBase
 
     public function getPath()
     {
-        return $this->path;
+        return $this->folder->getPath();
     }
 
     public function isEmpty()
     {
-        return empty($this->filesystem->listContents());
+        return $this->folder->isEmpty();
+    }
+
+    public function canAccess()
+    {
+        return $this->folder->isReadable();
+    }
+
+    public function __toString()
+    {
+        return $this->folder->__toString();
     }
 }

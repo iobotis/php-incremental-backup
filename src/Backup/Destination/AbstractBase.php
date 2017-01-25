@@ -8,7 +8,7 @@
 
 namespace Backup\Destination;
 
-abstract class AbstractBase implements \Backup\Destination\Base
+abstract class AbstractBase implements Base
 {
 
     private $settings;

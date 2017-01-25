@@ -10,7 +10,7 @@ namespace Backup\Tools;
 
 use Backup\Binary;
 use Backup\FileSystem\Source;
-use Backup\FileSystem\Destination;
+use Backup\Destination\Local;
 
 /**
  * Class CommandFactory
@@ -67,7 +67,7 @@ class Factory
             }
             $duplicity = new Duplicity(
                 new Source($settings['path_to_backup']),
-                new Destination($settings['path_to_backup_at']),
+                new Local(array('path' => $settings['path_to_backup_at'])),
                 $binary
             );
 
@@ -88,7 +88,7 @@ class Factory
             }
             $tar = new Tar(
                 new Source($settings['path_to_backup']),
-                new Destination($settings['path_to_backup_at']),
+                new Local(array('path' => $settings['path_to_backup_at'])),
                 $binary
             );
 
@@ -105,7 +105,7 @@ class Factory
             }
             $borg = new Borg(
                 new Source($settings['path_to_backup']),
-                new Destination($settings['path_to_backup_at']),
+                new Local(array('path' => $settings['path_to_backup_at'])),
                 $binary
             );
 

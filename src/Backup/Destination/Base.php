@@ -8,7 +8,13 @@
 
 namespace Backup\Destination;
 
-
+/**
+ * Defines basic functions for various backup client storages.
+ * eg. Local, ftp, dropbox.
+ *
+ * Interface Base
+ * @package Backup\Destination
+ */
 interface Base
 {
     const LOCAL_FOLDER_TYPE = 1;
@@ -24,4 +30,6 @@ interface Base
     public function getSettings();
 
     public function isEmpty();
+
+    public function canAccess();
 }

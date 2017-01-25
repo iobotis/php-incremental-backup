@@ -25,7 +25,11 @@ echo "Version: " . $borg->getVersion() . "\n";
 $backupClass = new IncrementalBackup ($borg);
 
 if($backupClass->isChanged()) {
+    // back me up.
+    echo 'Back up initiated' . "\n";
     $backupClass->createBackup();
+} else {
+    echo 'No need to backup.' . "\n";
 }
 
 
