@@ -6,7 +6,7 @@
  * @since 5/1/2017
  */
 
-require_once('settings.php');
+require_once(__DIR__ . '/../../settings.php');
 
 use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
