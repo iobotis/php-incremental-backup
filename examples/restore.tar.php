@@ -13,7 +13,10 @@ use Backup\IncrementalBackup;
 
 $settings = array(
     'path_to_backup' => $path_to_backup,
-    'path_to_backup_at' => $path_to_save,
+    'destination' => array(
+        'type' => 'local',
+        'path' => $path_to_save
+    ),
 );
 
 $tar = ToolFactory::create('Tar', $settings);
