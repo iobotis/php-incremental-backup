@@ -1,12 +1,12 @@
 <?php
 /**
  * @author Ioannis Botis
- * @date 17/1/2017
- * @version: restore.borg.php 7:22 μμ
- * @since 17/1/2017
+ * @date 9/1/2017
+ * @version: restore.tar.php 8:46 pm
+ * @since 9/1/2017
  */
 
-require_once('settings.php');
+require_once(__DIR__ . '/../../settings.php');
 
 use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
@@ -17,15 +17,13 @@ $settings = array(
         'type' => 'local',
         'path' => $path_to_save
     ),
-//    'passphrase' => 'abcdef',
-//    'exclude' => array('folder')
 );
 
-$borg = ToolFactory::create('Borg', $settings);
+$tar = ToolFactory::create('Tar', $settings);
 
-echo "Version: " . $borg->getVersion() . "\n";
+echo "Version: " . $tar->getVersion() . "\n";
 
-$backupClass = new IncrementalBackup ($borg);
+$backupClass = new IncrementalBackup ($tar);
 
 $backups = $backupClass->getAllBackups();
 
