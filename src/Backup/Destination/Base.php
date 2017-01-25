@@ -18,7 +18,7 @@ namespace Backup\Destination;
 interface Base
 {
     const LOCAL_FOLDER_TYPE = 1;
-    const SSH_TYPE = 2;
+    const FTP_TYPE = 2;
     const DROPBOX_TYPE = 3;
 
     public function __construct(array $settings);

@@ -8,14 +8,17 @@
  * @since 27/9/2016
  */
 
-require_once('settings.php');
+require_once(__DIR__ . '/../../settings.php');
 
 use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
 $settings = array(
     'path_to_backup' => $path_to_backup,
-    'path_to_backup_at' => $path_to_save,
+    'destination' => array(
+        'type' => 'local',
+        'path' => $path_to_save
+    ),
 //    'passphrase' => 'abcdef'
 );
 
