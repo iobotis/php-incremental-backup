@@ -6,10 +6,10 @@
  * @since 27/12/2016
  */
 
-$path_to_backup = '/home/yannis/www/borg/site';
-$path_to_save = '/home/yannis/www/borg/backup';
+$path_to_backup = '/path/to/backup';
+$path_to_save = '/path/to/save';
 
-$path_to_restore = '/home/yannis/www/borg/restore';
+$path_to_restore = '/path/to/restore';
 
 /**
  * Simple autoloader.
