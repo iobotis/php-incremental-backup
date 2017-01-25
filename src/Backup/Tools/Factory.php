@@ -10,7 +10,7 @@ namespace Backup\Tools;
 
 use Backup\Binary;
 use Backup\FileSystem\Source;
-use Backup\Destination\Local;
+use Backup\Destination\Factory as DesFactory;
 use Backup\Destination\Ftp;
 
 /**
@@ -68,7 +68,7 @@ class Factory
             }
             $duplicity = new Duplicity(
                 new Source($settings['path_to_backup']),
-                self::getDestination($settings['destination']),
+                DesFactory::create($settings['destination']),
                 $binary
             );
 
@@ -84,12 +84,12 @@ class Factory
         } elseif ($class === 'Tar') {
             $binary = new Binary('tar');
 
-            if (empty($settings['path_to_backup']) || empty($settings['path_to_backup_at'])) {
+            if (empty($settings['path_to_backup']) || empty($settings['destination'])) {
                 throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
             }
             $tar = new Tar(
                 new Source($settings['path_to_backup']),
-                new Local(array('path' => $settings['path_to_backup_at'])),
+                DesFactory::create($settings['destination']),
                 $binary
             );
 
@@ -101,12 +101,12 @@ class Factory
         } elseif ($class === 'Borg') {
             $binary = new Binary('borg');
 
-            if (empty($settings['path_to_backup']) || empty($settings['path_to_backup_at'])) {
+            if (empty($settings['path_to_backup']) || empty($settings['destination'])) {
                 throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
             }
             $borg = new Borg(
                 new Source($settings['path_to_backup']),
-                new Local(array('path' => $settings['path_to_backup_at'])),
+                DesFactory::create($settings['destination']),
                 $binary
             );
 
@@ -117,16 +117,5 @@ class Factory
             return $borg;
         }
         throw new \Backup\Exception\InvalidArgumentException('Class not yet implemented!');
-    }
-
-    protected static function getDestination($settings)
-    {
-        if ($settings['type'] == 'local') {
-            return new Local(array('path' => $settings['path']));
-        } elseif ($settings['type'] == 'ftp') {
-            return new Ftp($settings);
-        }
-
-        throw new \Backup\Exception\InvalidArgumentException('type not supported.');
     }
 }
