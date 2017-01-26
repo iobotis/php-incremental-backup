@@ -95,13 +95,19 @@ $backupClass->restoreTo(end( $backups ), '/path/to/restore');
 
 4) Simple Tar backup.
 ```php
-use Backup\Binary;
-use Backup\Tar;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
-$binary = new Binary('tar');
-$backup = new Tar('/path/to/backup', '/path/to/save', $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => $path_to_save
+    ),
+    //'exclude' => array('exclude', 'exclude1')
+);
 
+$backup = ToolFactory::create('Tar', $settings);
 $backupClass = new IncrementalBackup ($backup);
 
 $backups = $backupClass->getAllBackups();
@@ -122,49 +128,24 @@ else {
 
 5) Tar restore last backup.
 ```php
-use Backup\Binary;
-use Backup\Tar;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
-$binary = new Binary('tar');
-$backup = new Tar('/path/to/backup', '/path/to/save', $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => $path_to_save
+    ),
+);
 
+$backup = ToolFactory::create('Tar', $settings);
 $backupClass = new IncrementalBackup ( $backup );
 
 $backups = $backupClass->getAllBackups();
 
 // Restore last backup to this directory.
 $backupClass->restoreTo( end( $backups ), '/path/to/restore' );
-
-```
-
-6) Using the Factory to generate a Duplicity backup.
-```php
-use Backup\CommandFactory;
-use Backup\IncrementalBackup;
-
-$settings = array(
-    'path_to_backup' => '/path/to/backup',
-    'path_to_backup_at' => '/path/to/backup/at',
-//    'passphrase' => 'abcdef'
-);
-
-$duplicity = CommandFactory::create('Duplicity', $settings);
-
-$backupClass = new IncrementalBackup ($duplicity);
-
-$backups = $backupClass->getAllBackups();
-foreach ($backups as $time) {
-    echo 'There is a backup at ' . $time . "\n";
-}
-
-if ($backupClass->isChanged()) {
-    // back me up.
-    echo 'Back up initiated' . "\n";
-    $backupClass->createBackup();
-} else {
-    echo 'No need to backup.' . "\n";
-}
 
 ```
 
