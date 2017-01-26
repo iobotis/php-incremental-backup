@@ -21,24 +21,40 @@ Examples:
 
 1) Simple Duplicity backup.
 ```php
-use Backup\Binary;
-use Backup\Duplicity;
+use Backup\Tools\Factory as ToolFactory;
 
-$binary = new Binary('/usr/bin/duplicity');
-$backup = new Duplicity( '/path/to/backup', '/path/to/save', $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => '/path/to/save'
+    ),
+//    'passphrase' => 'abcdef',
+//    'exclude' => array('folder')
+);
 
+$backup = ToolFactory::create('Duplicity', $settings);
 $backup->execute();
 
 ```
 2) Simple Duplicity backup with wrapper class.
 ```php
-use Backup\Binary;
-use Backup\Duplicity;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
-$binary = new Binary('duplicity');
-$backup = new Duplicity('/path/to/backup', '/path/to/save', $binary);
+use Backup\Tools\Factory as ToolFactory;
 
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => '/path/to/save'
+    ),
+//    'passphrase' => 'abcdef',
+//    'exclude' => array('folder')
+);
+
+$backup = ToolFactory::create('Duplicity', $settings);
 $backupClass = new IncrementalBackup ($backup);
 
 $backups = $backupClass->getAllBackups();
@@ -57,15 +73,20 @@ else {
 ```
 3) Simple Duplicity backup restore last backup.
 ```php
-use Backup\Binary;
-use Backup\Duplicity;
+use Backup\Tools\Factory as ToolFactory;
+use Backup\IncrementalBackup;
 
-$binary = new Binary('duplicity');
-$backup = new Duplicity('/path/to/backup', '/path/to/save', $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => '/path/to/save'
+    ),
+//    'passphrase' => 'abcdef'
+);
 
-$backupClass = new IncrementalBackup ($backup);
-
-$backups = $backupClass->getAllBackups();
+$duplicity = ToolFactory::create('Duplicity', $settings);
+$backupClass = new IncrementalBackup ($duplicity);
 
 // Restore last backup to this directory.
 $backupClass->restoreTo(end( $backups ), '/path/to/restore');
@@ -74,13 +95,19 @@ $backupClass->restoreTo(end( $backups ), '/path/to/restore');
 
 4) Simple Tar backup.
 ```php
-use Backup\Binary;
-use Backup\Tar;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
-$binary = new Binary('tar');
-$backup = new Tar('/path/to/backup', '/path/to/save', $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => $path_to_save
+    ),
+    //'exclude' => array('exclude', 'exclude1')
+);
 
+$backup = ToolFactory::create('Tar', $settings);
 $backupClass = new IncrementalBackup ($backup);
 
 $backups = $backupClass->getAllBackups();
@@ -101,49 +128,24 @@ else {
 
 5) Tar restore last backup.
 ```php
-use Backup\Binary;
-use Backup\Tar;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
-$binary = new Binary('tar');
-$backup = new Tar('/path/to/backup', '/path/to/save', $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => $path_to_save
+    ),
+);
 
+$backup = ToolFactory::create('Tar', $settings);
 $backupClass = new IncrementalBackup ( $backup );
 
 $backups = $backupClass->getAllBackups();
 
 // Restore last backup to this directory.
 $backupClass->restoreTo( end( $backups ), '/path/to/restore' );
-
-```
-
-6) Using the Factory to generate a Duplicity backup.
-```php
-use Backup\CommandFactory;
-use Backup\IncrementalBackup;
-
-$settings = array(
-    'path_to_backup' => '/path/to/backup',
-    'path_to_backup_at' => '/path/to/backup/at',
-//    'passphrase' => 'abcdef'
-);
-
-$duplicity = CommandFactory::create('Duplicity', $settings);
-
-$backupClass = new IncrementalBackup ($duplicity);
-
-$backups = $backupClass->getAllBackups();
-foreach ($backups as $time) {
-    echo 'There is a backup at ' . $time . "\n";
-}
-
-if ($backupClass->isChanged()) {
-    // back me up.
-    echo 'Back up initiated' . "\n";
-    $backupClass->createBackup();
-} else {
-    echo 'No need to backup.' . "\n";
-}
 
 ```
 
