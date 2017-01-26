@@ -21,24 +21,40 @@ Examples:
 
 1) Simple Duplicity backup.
 ```php
-use Backup\Binary;
-use Backup\Duplicity;
+use Backup\Tools\Factory as ToolFactory;
 
-$binary = new Binary('/usr/bin/duplicity');
-$backup = new Duplicity( '/path/to/backup', '/path/to/save', $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => '/path/to/save'
+    ),
+//    'passphrase' => 'abcdef',
+//    'exclude' => array('folder')
+);
 
+$backup = ToolFactory::create('Duplicity', $settings);
 $backup->execute();
 
 ```
 2) Simple Duplicity backup with wrapper class.
 ```php
-use Backup\Binary;
-use Backup\Duplicity;
+use Backup\Tools\Factory as ToolFactory;
 use Backup\IncrementalBackup;
 
-$binary = new Binary('duplicity');
-$backup = new Duplicity('/path/to/backup', '/path/to/save', $binary);
+use Backup\Tools\Factory as ToolFactory;
 
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => '/path/to/save'
+    ),
+//    'passphrase' => 'abcdef',
+//    'exclude' => array('folder')
+);
+
+$backup = ToolFactory::create('Duplicity', $settings);
 $backupClass = new IncrementalBackup ($backup);
 
 $backups = $backupClass->getAllBackups();
@@ -57,15 +73,20 @@ else {
 ```
 3) Simple Duplicity backup restore last backup.
 ```php
-use Backup\Binary;
-use Backup\Duplicity;
+use Backup\Tools\Factory as ToolFactory;
+use Backup\IncrementalBackup;
 
-$binary = new Binary('duplicity');
-$backup = new Duplicity('/path/to/backup', '/path/to/save', $binary);
+$settings = array(
+    'path_to_backup' => $path_to_backup,
+    'destination' => array(
+        'type' => 'local',
+        'path' => '/path/to/save'
+    ),
+//    'passphrase' => 'abcdef'
+);
 
-$backupClass = new IncrementalBackup ($backup);
-
-$backups = $backupClass->getAllBackups();
+$duplicity = ToolFactory::create('Duplicity', $settings);
+$backupClass = new IncrementalBackup ($duplicity);
 
 // Restore last backup to this directory.
 $backupClass->restoreTo(end( $backups ), '/path/to/restore');
