@@ -42,7 +42,8 @@ class Ftp extends AbstractBase
 
     public function getPath()
     {
-
+        $settings = $this->getSettings();
+        return $settings['path'];
     }
 
     public function isEmpty()
@@ -52,6 +53,15 @@ class Ftp extends AbstractBase
 
     public function canAccess()
     {
-        return ($this->filesystem->read('/') !== false);
+        return ($this->filesystem->listContents('/') !== false);
+    }
+
+    public function read($file)
+    {
+        try {
+            return $this->filesystem->read($file);
+        } catch (\League\Flysystem\FileNotFoundException $e) {
+            return false;
+        }
     }
 }

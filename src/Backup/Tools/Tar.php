@@ -119,9 +119,10 @@ class Tar implements Command
      */
     public function getSettings()
     {
-        $settings_file = $this->_destination->getPath() . DIRECTORY_SEPARATOR . $this->getSettingsFile();
-        if (file_exists($settings_file)) {
-            return json_decode(file_get_contents($settings_file));
+        //$settings_file = $this->_destination->getPath() . DIRECTORY_SEPARATOR . $this->getSettingsFile();
+        $settings_file = $this->_destination->read(DIRECTORY_SEPARATOR . $this->getSettingsFile());
+        if ($settings_file) {
+            return json_decode($settings_file);
         } // first time to backup.
         else {
             return (object)array(
