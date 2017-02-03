@@ -9,6 +9,7 @@
 namespace Backup\Tools;
 
 use Backup\Binary;
+use Backup\FileSystem\TmpFileService;
 
 /**
  * Class Tar
@@ -32,7 +33,7 @@ class Tar implements Command
     private $_excluded_directories;
 
     /**
-     * @var \Backup\FileSystem\Destination
+     * @var \Backup\Destination\Base
      */
     private $_destination;
 
@@ -44,6 +45,8 @@ class Tar implements Command
     private $_output;
 
     private static $_version;
+
+    private $_internal_settings = array();
 
     /**
      * Tar constructor.
@@ -153,8 +156,13 @@ class Tar implements Command
         if ($settings->number == 0) {
             return self::NO_BACKUP_FOUND;
         }
-        $exitCode = $this->_binary->run(' --compare --file=' . $this->_destination->getPath() . DIRECTORY_SEPARATOR .
-            $this->getArchiveFilename($settings->number) . ' -C ' . $this->_main_directory->getPath() .
+        // @todo actually compare with ftp contents.
+        if ($this->_destination->getType() == \Backup\Destination\Base::FTP_TYPE) {
+            return self::IS_CHANGED;
+        }
+        $exitCode = $this->_binary->run(' --compare --file=' .
+            $this->getArchiveFile($settings->number) .
+            ' -C ' . $this->_main_directory->getPath() .
             ' ' . $this->_getExcludedPaths() .
             ' .' . DIRECTORY_SEPARATOR,
             array()
@@ -174,18 +182,22 @@ class Tar implements Command
 
     public function execute()
     {
+        // Get settings.
         $settings = $this->getSettings();
+
+        // Get the new archive filename.
+        $archive_file = $this->getArchiveFile($settings->number + 1);
         // Option -C goes before option -g.
-        $exitCode = $this->_binary->run(' cvf ' . $this->_destination->getPath() . DIRECTORY_SEPARATOR .
-            $this->getArchiveFilename($settings->number + 1) . ' -C ' . $this->_main_directory->getPath() .
+        $exitCode = $this->_binary->run(' cvf ' .
+            $archive_file . ' -C ' . $this->_main_directory->getPath() .
             ' ' . $this->_getExcludedPaths() .
-            ' -g ' . $this->_destination->getPath() . DIRECTORY_SEPARATOR .
-            $this->getSnapshotFileName() . ' .' . DIRECTORY_SEPARATOR,
+            ' -g ' . $this->getSnapshotFile() . ' .' . DIRECTORY_SEPARATOR,
             array()
         );
 
         $this->_output = $this->_binary->getOutput();
         if ($exitCode == 0) {
+            $this->_internal_settings['new_archive'] = $archive_file;
             $this->saveSettings();
         }
         return $exitCode;
@@ -205,8 +217,7 @@ class Tar implements Command
 
         for ($i = 1; $i <= $restore_till_here; $i++) {
             $exitCode = $this->_binary->run(
-                ' xvf ' . $this->_destination->getPath() . DIRECTORY_SEPARATOR .
-                $this->getArchiveFilename($i) . ' -g ' . '/dev/null' .
+                ' xvf ' . $this->getArchiveFile($i) . ' -g ' . '/dev/null' .
                 ' -C ' . $directory->getPath(),
                 array()
             );
@@ -224,8 +235,14 @@ class Tar implements Command
         $settings = $this->getSettings();
         $settings->number++;
         $settings->backups[] = time();
-        file_put_contents($this->_destination->getPath() . DIRECTORY_SEPARATOR . $this->getSettingsFile(),
-            json_encode($settings));
+        $this->_destination->write(DIRECTORY_SEPARATOR . $this->getSettingsFile(), json_encode($settings));
+
+        if ($this->_destination->getType() == \Backup\Destination\Base::FTP_TYPE) {
+            $contents = file_get_contents($this->getSnapshotFile());
+            $this->_destination->write(DIRECTORY_SEPARATOR . $this->getSnapShotFilename(), $contents);
+            $contents = file_get_contents($this->_internal_settings['new_archive']);
+            $this->_destination->write(DIRECTORY_SEPARATOR . $this->getArchiveFilename($settings->number), $contents);
+        }
     }
 
     /**
@@ -233,7 +250,23 @@ class Tar implements Command
      *
      * @return string
      */
-    protected function getSnapshotFileName()
+    protected function getSnapshotFile()
+    {
+        if (isset($this->_internal_settings['snapshot'])) {
+            return $this->_internal_settings['snapshot'];
+        }
+        $snapshot_file = $this->_destination->getPath() . DIRECTORY_SEPARATOR . $this->_main_directory->getBasename() . '.snar';
+        if ($this->_destination->getType() == \Backup\Destination\Base::FTP_TYPE) {
+            $snapshot_file_data = $this->_destination->read($this->getSnapShotFilename());
+            if ($snapshot_file !== false) {
+                $tmp = new TmpFileService('/tmp');
+                $snapshot_file = $tmp->create($snapshot_file_data);
+            }
+        }
+        return $this->_internal_settings['snapshot'] = $snapshot_file;
+    }
+
+    protected function getSnapShotFilename()
     {
         return $this->_main_directory->getBasename() . '.snar';
     }
@@ -244,11 +277,26 @@ class Tar implements Command
      * @param int $archive_number
      * @return string
      */
+    protected function getArchiveFile($archive_number = 1)
+    {
+        $archive_file = $this->getArchiveFilename($archive_number);
+        if ($this->_destination->getType() == \Backup\Destination\Base::FTP_TYPE) {
+            $archive_file_data = $this->_destination->read($archive_file);
+            if ($archive_file !== false) {
+                $tmp = new TmpFileService('/tmp');
+                $archive_file = $tmp->create($archive_file_data);
+            }
+        }
+        else {
+            $archive_file = $this->_destination->getPath() . DIRECTORY_SEPARATOR . $archive_file;
+        }
+        return $archive_file;
+    }
+
     protected function getArchiveFilename($archive_number = 1)
     {
         return $this->_main_directory->getBasename() . '.' . $archive_number . '.tar';
     }
-
     /**
      *
      * @return string

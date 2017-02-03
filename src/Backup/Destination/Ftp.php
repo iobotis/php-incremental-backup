@@ -64,4 +64,13 @@ class Ftp extends AbstractBase
             return false;
         }
     }
+
+    public function write($filename, $contents)
+    {
+        try {
+            return $this->filesystem->write($filename, $contents);
+        } catch (\League\Flysystem\FileNotFoundException $e) {
+            return false;
+        }
+    }
 }

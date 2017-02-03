@@ -51,6 +51,11 @@ class Local extends AbstractBase
         return null;
     }
 
+    public function write($filename, $contents)
+    {
+
+    }
+
     public function __toString()
     {
         return $this->folder->__toString();
