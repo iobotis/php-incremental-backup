@@ -32,4 +32,8 @@ interface Base
     public function isEmpty();
 
     public function canAccess();
+
+    public function read($file);
+
+    public function write($filename, $contents);
 }

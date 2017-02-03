@@ -42,6 +42,20 @@ class Local extends AbstractBase
         return $this->folder->isReadable();
     }
 
+    public function read($file)
+    {
+        $full_file = $this->getPath() . $file;
+        if (file_exists($full_file)) {
+            return file_get_contents($full_file);
+        }
+        return null;
+    }
+
+    public function write($filename, $contents)
+    {
+
+    }
+
     public function __toString()
     {
         return $this->folder->__toString();

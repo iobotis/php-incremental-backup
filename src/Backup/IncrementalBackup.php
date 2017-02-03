@@ -38,7 +38,11 @@ class IncrementalBackup
         } elseif ($status == Command::NO_BACKUP_FOUND) {
             return true;
         }
-        throw new \Backup\Exception\RuntimeException(implode('', $this->_command->getOutput()));
+        $output = $this->_command->getOutput();
+        if (empty($output)) {
+            $output = array();
+        }
+        throw new \Backup\Exception\RuntimeException(implode('', $output));
     }
 
     public function createBackup($full = false)
