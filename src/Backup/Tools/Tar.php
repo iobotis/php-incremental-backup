@@ -211,13 +211,11 @@ class Tar implements Command
 
     public function restore($time, \Backup\FileSystem\Folder $directory)
     {
-        $settings = $this->getSettings();
+        $files = $this->_getFilesToRestore($time);
 
-        $restore_till_here = array_search($time, $settings->backups) + 1;
-
-        for ($i = 1; $i <= $restore_till_here; $i++) {
+        foreach ($files as $file) {
             $exitCode = $this->_binary->run(
-                ' xvf ' . $this->getArchiveFile($i) . ' -g ' . '/dev/null' .
+                ' xvf ' . $file . ' -g ' . '/dev/null' .
                 ' -C ' . $directory->getPath(),
                 array()
             );
@@ -225,6 +223,19 @@ class Tar implements Command
             $this->_output = $this->_binary->getOutput();
         }
         return $exitCode;
+    }
+
+    private function _getFilesToRestore($time)
+    {
+        $settings = $this->getSettings();
+
+        $restore_till_here = array_search($time, $settings->backups) + 1;
+
+        $files = array();
+        for ($i = 1; $i <= $restore_till_here; $i++) {
+            $files[] = $this->getArchiveFile($i);
+        }
+        return $files;
     }
 
     /**
