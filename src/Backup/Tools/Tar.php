@@ -197,7 +197,14 @@ class Tar implements Command
 
         $this->_output = $this->_binary->getOutput();
         if ($exitCode == 0) {
-            $this->_internal_settings['new_archive'] = $archive_file;
+            // if we need to synchronize between local and destination.
+            if ($this->_destination->getType() == \Backup\Destination\Base::FTP_TYPE) {
+                $this->synchronizeFile($this->getSnapshotFile(), DIRECTORY_SEPARATOR . $this->getSnapShotFilename());
+                $this->synchronizeFile(
+                    $archive_file,
+                    DIRECTORY_SEPARATOR . $this->getArchiveFilename($settings->number + 1)
+                );
+            }
             $this->saveSettings();
         }
         return $exitCode;
@@ -247,13 +254,18 @@ class Tar implements Command
         $settings->number++;
         $settings->backups[] = time();
         $this->_destination->write(DIRECTORY_SEPARATOR . $this->getSettingsFile(), json_encode($settings));
+    }
 
-        if ($this->_destination->getType() == \Backup\Destination\Base::FTP_TYPE) {
-            $contents = file_get_contents($this->getSnapshotFile());
-            $this->_destination->write(DIRECTORY_SEPARATOR . $this->getSnapShotFilename(), $contents);
-            $contents = file_get_contents($this->_internal_settings['new_archive']);
-            $this->_destination->write(DIRECTORY_SEPARATOR . $this->getArchiveFilename($settings->number), $contents);
-        }
+    /**
+     * Synchronize local files to destination.
+     *
+     * @param $local_file
+     * @param $destination_filename
+     */
+    protected function synchronizeFile($local_file, $destination_filename)
+    {
+        $contents = file_get_contents($local_file);
+        $this->_destination->write($destination_filename, $contents);
     }
 
     /**
