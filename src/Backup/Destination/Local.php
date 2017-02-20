@@ -51,6 +51,10 @@ class Local extends AbstractBase
         return null;
     }
 
+    public function listContents($dir = '', $recursive) {
+        return null;
+    }
+
     public function write($filename, $contents)
     {
 

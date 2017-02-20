@@ -73,4 +73,9 @@ class Ftp extends AbstractBase
             return false;
         }
     }
+
+    public function listContents($dir = '', $recursive)
+    {
+        return $this->filesystem->listContents('/');
+    }
 }

@@ -9,6 +9,7 @@
 namespace Backup\Tools;
 
 use Backup\Binary;
+use Backup\FileSystem\TmpFileService;
 
 class Borg implements Command
 {
@@ -76,9 +77,25 @@ class Borg implements Command
         if (!isset($this->_passphrase)) {
             $encryption = '--encryption=none ';
         }
-        $this->_binary->run(' init ' . $encryption . $this->_destination->getPath(), $this->getEnvironmentVars());
+        if ($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
+            $path = $this->_destination->getPath();
+        } elseif ($this->_destination->getType() === \Backup\Destination\Base::FTP_TYPE) {
+
+        }
+        $this->_binary->run(' init ' . $encryption . $path, $this->getEnvironmentVars());
     }
 
+    private function _cloneToLocal() {
+        $tmp = new TmpFileService('/tmp');
+        //$snapshot_file = $tmp->create($snapshot_file_data);
+        $contents = $this->_destination->listContents();
+        $temporary_directory = $tmp->mkdir();
+        foreach ($contents as $content) {
+            $data = $this->_destination->read($content['basename']);
+
+        }
+        return $temporary_directory;
+    }
     /**
      * Set a passphrase to encrypt or decrypt the backup.
      *
