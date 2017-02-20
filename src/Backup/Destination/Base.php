@@ -38,7 +38,7 @@ interface Base
      * @param boolean $recursive
      * @return mixed
      */
-    public function listContents($dir = '', $recursive);
+    public function listContents($dir = '', $recursive = false);
 
     public function read($file);
 

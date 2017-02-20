@@ -48,7 +48,7 @@ class Ftp extends AbstractBase
 
     public function isEmpty()
     {
-        return true;
+        return empty($this->filesystem->listContents('/'));
     }
 
     public function canAccess()
@@ -74,7 +74,7 @@ class Ftp extends AbstractBase
         }
     }
 
-    public function listContents($dir = '', $recursive)
+    public function listContents($dir = '', $recursive = false)
     {
         return $this->filesystem->listContents('/');
     }

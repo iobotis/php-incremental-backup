@@ -11,6 +11,8 @@ namespace Backup\Destination;
 use Backup\Destination\AbstractBase;
 
 use Backup\FileSystem\Folder;
+use League\Flysystem\Adapter\Local as FlyLocal;
+use League\Flysystem\Filesystem;
 
 class Local extends AbstractBase
 {
@@ -51,13 +53,16 @@ class Local extends AbstractBase
         return null;
     }
 
-    public function listContents($dir = '', $recursive) {
+    public function listContents($dir = '', $recursive = false) {
         return null;
     }
 
     public function write($filename, $contents)
     {
-
+        $settings = $this->getSettings();
+        $adapter = new FlyLocal($settings['path']);
+        $filesystem = new Filesystem($adapter);
+        return $filesystem->write($filename, $contents);
     }
 
     public function __toString()
