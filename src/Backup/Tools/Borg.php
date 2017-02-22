@@ -53,6 +53,8 @@ class Borg implements Command
 
     private $_output;
 
+    private $_local_destination;
+
     /**
      * Borg constructor.
      * @param $directory
@@ -78,27 +80,51 @@ class Borg implements Command
         if (!isset($this->_passphrase)) {
             $encryption = '--encryption=none ';
         }
-        if ($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
-            $path = $this->_destination->getPath();
-        } elseif ($this->_destination->getType() === \Backup\Destination\Base::FTP_TYPE) {
-            $path = $this->_cloneToLocal();
-            var_dump($path);
-        }
+        $path = $this->getDestination()->getPath();
         $this->_binary->run(' init ' . $encryption . $path, $this->getEnvironmentVars());
     }
 
-    private function _cloneToLocal() {
+    /**
+     * Get the destination to Backup at with borg.
+     * If destination is not local, create a tmp local directory and sync contents.
+     *
+     * @return \Backup\Destination\Base|Local
+     */
+    protected function getDestination()
+    {
+        if ($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
+            return $this->_destination;
+        } elseif ($this->_destination->getType() === \Backup\Destination\Base::FTP_TYPE) {
+            if (!isset($this->_local_destination)) {
+                $this->_local_destination = $this->_cloneToLocal();
+            }
+            return $this->_local_destination;
+        }
+    }
+
+    private function _cloneToLocal()
+    {
         $tmp = new TmpFileService('/tmp');
-        //$snapshot_file = $tmp->create($snapshot_file_data);
-        $contents = $this->_destination->listContents();
         $temporary_directory = $tmp->mkdir();
         $folder = new Local(array('path' => $temporary_directory));
-        foreach ($contents as $content) {
-            $data = $this->_destination->read($content['basename']);
-            $folder->write($content['basename'], $data);
-        }
-        return $temporary_directory;
+        $this->_synchronize($this->_destination, $folder);
+        return $folder;
     }
+
+    private function _synchronize($source, $destination)
+    {
+        $contents = $source->listContents('', true);
+        foreach ($contents as $content) {
+            if ($content['type'] === 'dir') {
+                $data = null;
+            } elseif ($content['type'] === 'file') {
+                $data = $source->read($content['path']);
+            }
+
+            $destination->write($content['path'], $data);
+        }
+    }
+
     /**
      * Set a passphrase to encrypt or decrypt the backup.
      *
@@ -150,7 +176,7 @@ class Borg implements Command
         }
 
         $exitCode = $this->_binary->run(
-            'check ' . $this->_destination->getPath(),
+            'check ' . $this->getDestination()->getPath(),
             $this->getEnvironmentVars()
         );
 
@@ -164,13 +190,13 @@ class Borg implements Command
 
     public function execute()
     {
-        if ($this->_destination->isEmpty()) {
+        if ($this->getDestination()->isEmpty()) {
             $this->initializeRepo();
         }
         $exitCode = $this->_binary->run(
             'create ' . $this->_getExcludedPaths() .
-            $this->_destination . '::' . time() . ' .' . DIRECTORY_SEPARATOR,
-            $this->getEnvironmentVars(),
+            $this->getDestination()->getPath() . '::' . time() . ' .' . DIRECTORY_SEPARATOR,
+            $this->getEnvironmentVars() + array('BORG_RELOCATED_REPO_ACCESS_IS_OK' => 'yes'),
             $this->_main_directory->getPath()
         );
         if ($exitCode) {
@@ -265,5 +291,15 @@ class Borg implements Command
     public function getOutput()
     {
         return $this->_binary->getOutput();
+    }
+
+    /**
+     * When the object is destroyed update the destination if needed.
+     */
+    public function __destruct()
+    {
+        if(isset($this->_local_destination)) {
+            $this->_synchronize($this->_local_destination, $this->_destination);
+        }
     }
 }

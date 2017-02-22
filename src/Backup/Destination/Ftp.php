@@ -65,9 +65,12 @@ class Ftp extends AbstractBase
         }
     }
 
-    public function write($filename, $contents)
+    public function write($filename, $contents = null)
     {
         try {
+            if ($contents === null) {
+                return $this->filesystem->createDir($filename);
+            }
             return $this->filesystem->put($filename, $contents);
         } catch (\League\Flysystem\FileNotFoundException $e) {
             return false;
@@ -76,6 +79,6 @@ class Ftp extends AbstractBase
 
     public function listContents($dir = '', $recursive = false)
     {
-        return $this->filesystem->listContents('/');
+        return $this->filesystem->listContents($dir, $recursive);
     }
 }
