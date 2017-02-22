@@ -53,7 +53,15 @@ class Borg implements Command
 
     private $_output;
 
+    /**
+     * @var \Backup\Destination\Local
+     */
     private $_local_destination;
+
+    /**
+     * @var bool whether a new backup was performed.
+     */
+    private $_new_backup_taken = false;
 
     /**
      * Borg constructor.
@@ -81,7 +89,10 @@ class Borg implements Command
             $encryption = '--encryption=none ';
         }
         $path = $this->getDestination()->getPath();
-        $this->_binary->run(' init ' . $encryption . $path, $this->getEnvironmentVars());
+        $exitCode = $this->_binary->run(' init ' . $encryption . $path, $this->getEnvironmentVars());
+        if ($exitCode) {
+            throw new \Backup\Exception\InvalidArgumentException('Backup initialization failed');
+        }
     }
 
     /**
@@ -202,6 +213,7 @@ class Borg implements Command
         if ($exitCode) {
             throw new \Backup\Exception\InvalidArgumentException('Backup destination should be empty or a valid borg repo');
         }
+        $this->_new_backup_taken = true;
         $this->_output = $this->_binary->getOutput();
         return $exitCode;
     }
@@ -210,7 +222,7 @@ class Borg implements Command
     {
         $exitCode = $this->_binary->run(
             'list ' .
-            $this->_destination,
+            $this->getDestination()->getPath(),
             $this->getEnvironmentVars()
         );
         if ($exitCode != 0) {
@@ -231,7 +243,7 @@ class Borg implements Command
     {
         $exitCode = $this->_binary->run(
             'extract ' .
-            $this->_destination . '::' . $time,
+            $this->getDestination()->getPath() . '::' . $time,
             $this->getEnvironmentVars(),
             $directory->getPath()
         );
@@ -298,7 +310,7 @@ class Borg implements Command
      */
     public function __destruct()
     {
-        if(isset($this->_local_destination)) {
+        if(isset($this->_local_destination) && $this->_new_backup_taken) {
             $this->_synchronize($this->_local_destination, $this->_destination);
         }
     }
