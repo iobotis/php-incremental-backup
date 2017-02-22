@@ -9,6 +9,8 @@
 namespace Backup\Tools;
 
 use Backup\Binary;
+use Backup\FileSystem\TmpFileService;
+use Backup\Destination\Local;
 
 class Borg implements Command
 {
@@ -52,6 +54,16 @@ class Borg implements Command
     private $_output;
 
     /**
+     * @var \Backup\Destination\Local
+     */
+    private $_local_destination;
+
+    /**
+     * @var bool whether a new backup was performed.
+     */
+    private $_new_backup_taken = false;
+
+    /**
      * Borg constructor.
      * @param $directory
      * @param $destination
@@ -76,7 +88,52 @@ class Borg implements Command
         if (!isset($this->_passphrase)) {
             $encryption = '--encryption=none ';
         }
-        $this->_binary->run(' init ' . $encryption . $this->_destination->getPath(), $this->getEnvironmentVars());
+        $path = $this->getDestination()->getPath();
+        $exitCode = $this->_binary->run(' init ' . $encryption . $path, $this->getEnvironmentVars());
+        if ($exitCode) {
+            throw new \Backup\Exception\InvalidArgumentException('Backup initialization failed');
+        }
+    }
+
+    /**
+     * Get the destination to Backup at with borg.
+     * If destination is not local, create a tmp local directory and sync contents.
+     *
+     * @return \Backup\Destination\Base|Local
+     */
+    protected function getDestination()
+    {
+        if ($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
+            return $this->_destination;
+        } elseif ($this->_destination->getType() === \Backup\Destination\Base::FTP_TYPE) {
+            if (!isset($this->_local_destination)) {
+                $this->_local_destination = $this->_cloneToLocal();
+            }
+            return $this->_local_destination;
+        }
+    }
+
+    private function _cloneToLocal()
+    {
+        $tmp = new TmpFileService('/tmp');
+        $temporary_directory = $tmp->mkdir();
+        $folder = new Local(array('path' => $temporary_directory));
+        $this->_synchronize($this->_destination, $folder);
+        return $folder;
+    }
+
+    private function _synchronize($source, $destination)
+    {
+        $contents = $source->listContents('', true);
+        foreach ($contents as $content) {
+            if ($content['type'] === 'dir') {
+                $data = null;
+            } elseif ($content['type'] === 'file') {
+                $data = $source->read($content['path']);
+            }
+
+            $destination->write($content['path'], $data);
+        }
     }
 
     /**
@@ -130,7 +187,7 @@ class Borg implements Command
         }
 
         $exitCode = $this->_binary->run(
-            'check ' . $this->_destination->getPath(),
+            'check ' . $this->getDestination()->getPath(),
             $this->getEnvironmentVars()
         );
 
@@ -144,18 +201,19 @@ class Borg implements Command
 
     public function execute()
     {
-        if ($this->_destination->isEmpty()) {
+        if ($this->getDestination()->isEmpty()) {
             $this->initializeRepo();
         }
         $exitCode = $this->_binary->run(
             'create ' . $this->_getExcludedPaths() .
-            $this->_destination . '::' . time() . ' .' . DIRECTORY_SEPARATOR,
-            $this->getEnvironmentVars(),
+            $this->getDestination()->getPath() . '::' . time() . ' .' . DIRECTORY_SEPARATOR,
+            $this->getEnvironmentVars() + array('BORG_RELOCATED_REPO_ACCESS_IS_OK' => 'yes'),
             $this->_main_directory->getPath()
         );
         if ($exitCode) {
             throw new \Backup\Exception\InvalidArgumentException('Backup destination should be empty or a valid borg repo');
         }
+        $this->_new_backup_taken = true;
         $this->_output = $this->_binary->getOutput();
         return $exitCode;
     }
@@ -164,7 +222,7 @@ class Borg implements Command
     {
         $exitCode = $this->_binary->run(
             'list ' .
-            $this->_destination,
+            $this->getDestination()->getPath(),
             $this->getEnvironmentVars()
         );
         if ($exitCode != 0) {
@@ -185,7 +243,7 @@ class Borg implements Command
     {
         $exitCode = $this->_binary->run(
             'extract ' .
-            $this->_destination . '::' . $time,
+            $this->getDestination()->getPath() . '::' . $time,
             $this->getEnvironmentVars(),
             $directory->getPath()
         );
@@ -245,5 +303,15 @@ class Borg implements Command
     public function getOutput()
     {
         return $this->_binary->getOutput();
+    }
+
+    /**
+     * When the object is destroyed update the destination if needed.
+     */
+    public function __destruct()
+    {
+        if(isset($this->_local_destination) && $this->_new_backup_taken) {
+            $this->_synchronize($this->_local_destination, $this->_destination);
+        }
     }
 }

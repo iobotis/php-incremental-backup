@@ -11,14 +11,20 @@ namespace Backup\Destination;
 use Backup\Destination\AbstractBase;
 
 use Backup\FileSystem\Folder;
+use League\Flysystem\Adapter\Local as FlyLocal;
+use League\Flysystem\Filesystem;
 
 class Local extends AbstractBase
 {
     protected $folder;
+    private $adapter;
+    private $filesystem;
 
     public function __construct(array $settings)
     {
         parent::__construct($settings);
+        $this->adapter = new FlyLocal($settings['path']);
+        $this->filesystem = new Filesystem($this->adapter);
         $this->folder = new Folder($settings['path']);
     }
 
@@ -44,6 +50,7 @@ class Local extends AbstractBase
 
     public function read($file)
     {
+        return $this->filesystem->read($file);
         $full_file = $this->getPath() . $file;
         if (file_exists($full_file)) {
             return file_get_contents($full_file);
@@ -51,9 +58,17 @@ class Local extends AbstractBase
         return null;
     }
 
+    public function listContents($dir = '', $recursive = false)
+    {
+        return $this->filesystem->listContents($dir, $recursive);
+    }
+
     public function write($filename, $contents)
     {
-
+        if ($contents === null) {
+            return $this->filesystem->createDir($filename);
+        }
+        return $this->filesystem->put($filename, $contents);
     }
 
     public function __toString()

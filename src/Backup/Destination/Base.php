@@ -33,6 +33,13 @@ interface Base
 
     public function canAccess();
 
+    /**
+     * @param string $dir
+     * @param boolean $recursive
+     * @return mixed
+     */
+    public function listContents($dir = '', $recursive = false);
+
     public function read($file);
 
     public function write($filename, $contents);

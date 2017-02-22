@@ -18,7 +18,7 @@ class TmpFileService
     {
         $this->_path = $path;
     }
-    
+
     public function create($contents)
     {
         $tmpfname = tempnam($this->_path, "Tmp");
@@ -28,4 +28,20 @@ class TmpFileService
 
         return $tmpfname;
     }
+
+    function mkdir()
+    {
+        $tempfile = tempnam($this->_path, 'Tmp');
+        if (file_exists($tempfile)) {
+            unlink($tempfile);
+        }
+        mkdir($tempfile);
+        if (is_dir($tempfile)) {
+            return $tempfile;
+        }
+        else {
+            return null;
+        }
+    }
+
 }
