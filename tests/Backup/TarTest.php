@@ -297,19 +297,27 @@ class TarTest extends \PHPUnit_Framework_TestCase
     protected function getTarMock($methods_to_mock)
     {
         $sourceMock = $this->getMockBuilder(Source::class)
-            ->setMethods(array('exists'))
+            ->disableOriginalConstructor()
+            ->setMethods(array('exists', 'getPath'))
             ->setConstructorArgs(array(self::PATH_TO_BACKUP))
             ->getMock();
         $sourceMock->expects($this->any())
             ->method('exists')
             ->will($this->returnValue(true));
+        $sourceMock->expects($this->any())
+            ->method('getPath')
+            ->will($this->returnValue(self::PATH_TO_BACKUP));
         $destinationMock = $this->getMockBuilder(Local::class)
-            ->setMethods(array('exists', 'canAccess'))
+            ->disableOriginalConstructor()
+            ->setMethods(array('exists', 'canAccess', 'getPath'))
             ->setConstructorArgs(array(array('path' => self::DESTINATION_PATH)))
             ->getMock();
         $destinationMock->expects($this->any())
             ->method('exists')
             ->will($this->returnValue(true));
+        $destinationMock->expects($this->any())
+            ->method('getPath')
+            ->will($this->returnValue(self::DESTINATION_PATH));
         $destinationMock->expects($this->any())
             ->method('canAccess')
             ->will($this->returnValue(true));
