@@ -253,19 +253,27 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
     protected function getDuplicityMock($methods_to_mock)
     {
         $sourceMock = $this->getMockBuilder(Source::class)
-            ->setMethods(array('exists'))
+            ->disableOriginalConstructor()
+            ->setMethods(array('exists', 'getPath'))
             ->setConstructorArgs(array(self::PATH_TO_BACKUP))
             ->getMock();
         $sourceMock->expects($this->any())
             ->method('exists')
             ->will($this->returnValue(true));
+        $sourceMock->expects($this->any())
+            ->method('getPath')
+            ->will($this->returnValue(self::PATH_TO_BACKUP));
         $destinationMock = $this->getMockBuilder(Local::class)
-            ->setMethods(array('exists'))
+            ->disableOriginalConstructor()
+            ->setMethods(array('exists', 'getPath'))
             ->setConstructorArgs(array(array('path' => self::DESTINATION_PATH)))
             ->getMock();
         $destinationMock->expects($this->any())
             ->method('exists')
             ->will($this->returnValue(true));
+        $destinationMock->expects($this->any())
+            ->method('getPath')
+            ->will($this->returnValue(self::DESTINATION_PATH));
         $this->binary = $this->getMockBuilder(Binary::class)
             ->setMethods(array('run', 'getOutput'))
             ->setConstructorArgs(array('duplicity'))
