@@ -74,15 +74,6 @@ class Duplicity implements Command
     }
 
     /**
-     * @param string $directory
-     * @return bool
-     */
-    protected function directoryExists($directory)
-    {
-        return is_dir($directory);
-    }
-
-    /**
      * Check if duplicity is installed.
      * @return bool
      */
