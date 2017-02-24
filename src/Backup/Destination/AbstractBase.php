@@ -10,16 +10,10 @@ namespace Backup\Destination;
 
 abstract class AbstractBase implements Base
 {
-
-    private $settings;
+    use \Backup\Destination\Settings;
 
     public function __construct(array $settings)
     {
-        $this->settings = $settings;
-    }
-
-    public function getSettings()
-    {
-        return $this->settings;
+        $this->setSettings($settings);
     }
 }
