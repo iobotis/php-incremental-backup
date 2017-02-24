@@ -51,11 +51,6 @@ class Local extends AbstractBase
     public function read($file)
     {
         return $this->filesystem->read($file);
-        $full_file = $this->getPath() . $file;
-        if (file_exists($full_file)) {
-            return file_get_contents($full_file);
-        }
-        return null;
     }
 
     public function listContents($dir = '', $recursive = false)
@@ -69,10 +64,5 @@ class Local extends AbstractBase
             return $this->filesystem->createDir($filename);
         }
         return $this->filesystem->put($filename, $contents);
-    }
-
-    public function __toString()
-    {
-        return $this->folder->__toString();
     }
 }
