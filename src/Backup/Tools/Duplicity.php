@@ -27,6 +27,10 @@ class Duplicity implements Command
             'since' => '0.1',
             'use' => false,
         ),
+        '--archive-dir=' => array(
+            'since' => '0.1',
+            'use' => false,
+        ),
     );
 
     /**
@@ -285,6 +289,9 @@ class Duplicity implements Command
         foreach ($this->_options as $option => $settings) {
             if ($this->_isSupported($settings['since'])) {
                 if ($settings['use']) {
+                    if(isset($settings['value'])) {
+                        $option .= $settings['value'];
+                    }
                     $options[] = $option;
                 }
             } else {
@@ -305,6 +312,17 @@ class Duplicity implements Command
         if($this->_destination->getType() === \Backup\Destination\Base::LOCAL_FOLDER_TYPE) {
             return 'file://' . $this->_destination->getPath();
         }
+    }
+
+    /**
+     * Sets the archive dir option for duplicity.
+     *
+     * @param $path
+     */
+    public function setArchiveDir($path)
+    {
+        $this->_options['--archive-dir=']['use'] = true;
+        $this->_options['--archive-dir=']['value'] = $path;
     }
 
     public function getOutput()
