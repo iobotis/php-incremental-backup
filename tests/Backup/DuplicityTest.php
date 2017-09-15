@@ -154,6 +154,33 @@ class DuplicityTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * Test ArchiveDir(--archive-dir) is set as environment variable.
+     *
+     * @throws \Exception
+     */
+    public function testSetArchiveDir()
+    {
+        $path = '/path/to/archive/dir';
+        $this->duplicity = $this->getDuplicityMock(array('getVersion'));
+        $this->duplicity
+            ->expects($this->any())
+            ->method('getVersion')
+            ->will($this->returnValue('0.6'));
+        $this->duplicity->setArchiveDir($path);
+        $this->binary
+            ->expects($this->once())
+            ->method('run')
+            ->with($this->stringContains('--archive-dir=' . $path))
+            ->will($this->returnValue(0));
+        $this->binary
+            ->expects($this->once())
+            ->method('getOutput')
+            ->will($this->returnValue(array('')));
+        $this->duplicity->execute();
+
+    }
+
+    /**
      * @group 1
      * @dataProvider getCmdCollectionOutput
      * @param $cmd_output
