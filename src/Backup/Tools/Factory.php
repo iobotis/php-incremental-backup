@@ -59,9 +59,9 @@ class Factory
         if (!in_array($class, self::$_classes_supported)) {
             throw new \Backup\Exception\InvalidArgumentException('Class not supported.');
         }
-
+        $path = (isset($settings['binary_path'])? $settings['binary_path']: null);
         if ($class === 'Duplicity') {
-            $binary = new Binary('duplicity');
+            $binary = new Binary($path? $path: 'duplicity');
 
             if (empty($settings['path_to_backup']) || empty($settings['destination'])) {
                 throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
@@ -82,7 +82,7 @@ class Factory
 
             return $duplicity;
         } elseif ($class === 'Tar') {
-            $binary = new Binary('tar');
+            $binary = new Binary($path? $path: 'tar');
 
             if (empty($settings['path_to_backup']) || empty($settings['destination'])) {
                 throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
@@ -99,7 +99,7 @@ class Factory
 
             return $tar;
         } elseif ($class === 'Borg') {
-            $binary = new Binary('borg');
+            $binary = new Binary($path? $path: 'borg');
 
             if (empty($settings['path_to_backup']) || empty($settings['destination'])) {
                 throw new \Backup\Exception\InvalidArgumentException('Please see the documentation for the settings needed.');
