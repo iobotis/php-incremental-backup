@@ -148,6 +148,45 @@ $backups = $backupClass->getAllBackups();
 $backupClass->restoreTo( end( $backups ), '/path/to/restore' );
 
 ```
+Advanced usage
+--------------
+1)Duplicity without Factory
+```php
+use Backup\Binary;
+use Backup\FileSystem\Source;
+use Backup\Destination\Factory as DesFactory;
+use Backup\Tools\Duplicity;
+use Backup\FileSystem\Folder;
+
+$binary = new Binary('/usr/bin/duplicity');
+$source = new Source('/var/www/example_com');
+$destination = DesFactory::create('/var/backups/example_com');
+
+$duplicity = new Duplicity($source,$destination,$binary);
+
+$duplicity->setArchiveDir('/var/www/cache');
+$duplicity->setExludedSubDirectories(array('cache', 'logs', 'tmp'));
+
+// check if duplicity is installed.
+$duplicity->isInstalled();
+
+// get duplicity version.
+$duplicity->getVersion();
+
+// verify backup location.
+$duplicity->verify();
+
+// backup if needed.
+$duplicity->execute();
+
+// retrieve existing backups.
+$backups = $duplicity->getAllBackups();
+
+// restore 1st backup.
+$folder = new Folder('/var/www/example_com');
+$duplicity->restore($backups[0], $folder);
+
+```
 
 How to run unit tests
 ---------------------
