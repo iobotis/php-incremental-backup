@@ -6,8 +6,9 @@ The library is a wrapper to different commands
 Tools supported
 ---------------
 
-* Duplicity
-* Tar
+* [Duplicity](http://duplicity.nongnu.org/)
+* [Tar](https://www.howtoforge.com/tutorial/linux-tar-command/)
+* [Borg backup](https://borgbackup.readthedocs.io/en/stable/)
 
 These tools are used to perform incremental backups on the directories chosen.
 
@@ -15,6 +16,15 @@ Requirements:
 -------------
 * php 5.4 or greater installed.
 * one of the above libraries to be installed in your system.
+
+How to install
+--------------
+1) Using composer
+
+`composer require iobotis/php-incremental-backup`
+
+2) Download and run `composer install`
+Follow the examples in the examples folder
 
 Examples:
 ---------
