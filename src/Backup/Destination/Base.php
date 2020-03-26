@@ -40,6 +40,10 @@ interface Base
      */
     public function listContents($dir = '', $recursive = false);
 
+    /**
+     * @param string $file The path to the file.
+     * @return string|false The file contents or false on failure.
+     */
     public function read($file);
 
     public function write($filename, $contents);

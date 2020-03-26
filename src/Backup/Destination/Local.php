@@ -50,7 +50,11 @@ class Local extends AbstractBase
 
     public function read($file)
     {
-        return $this->filesystem->read($file);
+        try {
+            return $this->filesystem->read($file);
+        } catch (\League\Flysystem\FileNotFoundException $e) {
+            return false;
+        }
     }
 
     public function listContents($dir = '', $recursive = false)
